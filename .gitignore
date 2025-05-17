@@ -1,4 +1,4 @@
-# Gradle files
+# Gradle
 .gradle/
 build/
 
@@ -7,12 +7,15 @@ local.properties
 
 # Log/OS Files
 *.log
+.DS_Store
+Thumbs.db
 
 # Android Studio generated files and folders
 captures/
 .externalNativeBuild/
 .cxx/
 *.apk
+*.ap_
 output.json
 
 # IntelliJ
@@ -31,3 +34,14 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Kotlin-specific
+*.class
+
+# Compose-related (ProtoBuf snapshot if generated)
+*.pb
+
+# Test and coverage
+/test-results/
+/coverage/
+/jacoco/
