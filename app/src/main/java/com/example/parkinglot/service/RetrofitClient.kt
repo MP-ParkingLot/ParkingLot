@@ -1,13 +1,15 @@
-package com.example.parkinglot.service
-
+import com.example.parkinglot.service.SeoulParkingService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "https://openapi.seoul.go.kr:8088/"
+    private const val BASE_URL = "https://api.dev.seoul.go.kr/"
 
-    val retrofit: Retrofit = Retrofit.Builder()
+    private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
+
+    val seoulParkingService: SeoulParkingService =
+        retrofit.create(SeoulParkingService::class.java)
 }
