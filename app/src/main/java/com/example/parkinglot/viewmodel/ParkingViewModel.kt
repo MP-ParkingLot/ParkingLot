@@ -23,6 +23,7 @@ class ParkingViewModel : ViewModel() {
     private val _parkingData = MutableLiveData<NearByParkinglotResponse>()
     val parkingData: LiveData<NearByParkinglotResponse> = _parkingData
 
+    //주차장 정보 조회용
     fun fetchParkingLots(request: NearByParkinglotRequest) {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
@@ -46,8 +47,74 @@ class ParkingViewModel : ViewModel() {
         }
     }
 
+    //빈자리 필터 용
+    fun fetchEmptyParkingLots(request: NearByParkinglotRequest) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
 
+            try {
+                val result = repository.getEmptyParkingLots(request)
+                uiState = uiState.copy(
+                    parkingLots = result.parkingLot.toList(), // Map → List 변환
+                    isLoading = false,
+                    error = null
+                )
+                Log.d("ParkingViewModel", "빈자리 필터 성공: $result")
+            } catch (e: Exception) {
+                uiState = uiState.copy(
+                    isLoading = false,
+                    error = e.message ?: "빈자리 필터 오류 발생"
+                )
+                Log.e("ParkingViewModel", "빈자리 필터 실패: ${e.message}", e)
+            }
+        }
+    }
 
+    //무료 필터 용
+    fun fetchFreeParkingLots(request: NearByParkinglotRequest) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+
+            try {
+                val result = repository.getFreeParkingLots(request)
+                uiState = uiState.copy(
+                    parkingLots = result.parkingLot.toList(),
+                    isLoading = false,
+                    error = null
+                )
+                Log.d("ParkingViewModel", "무료 필터 성공: $result")
+            } catch (e: Exception) {
+                uiState = uiState.copy(
+                    isLoading = false,
+                    error = e.message ?: "무료 필터 오류 발생"
+                )
+                Log.e("ParkingViewModel", "무료 필터 실패: ${e.message}", e)
+            }
+        }
+    }
+
+    //행정 구역 별 용
+    fun fetchRegionParkingLots(district: String) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+
+            try {
+                val result = repository.getRegionParkingLots(district)
+                uiState = uiState.copy(
+                    parkingLots = result.parkingLot.toList(),
+                    isLoading = false,
+                    error = null
+                )
+                Log.d("ParkingViewModel", "행정구 필터 성공: $result")
+            } catch (e: Exception) {
+                uiState = uiState.copy(
+                    isLoading = false,
+                    error = e.message ?: "행정구 필터 오류 발생"
+                )
+                Log.e("ParkingViewModel", "행정구 필터 실패: ${e.message}", e)
+            }
+        }
+    }
 }
 
 
