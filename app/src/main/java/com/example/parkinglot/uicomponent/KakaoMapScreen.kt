@@ -4,10 +4,12 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Looper
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,6 +20,9 @@ import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.kakao.vectormap.KakaoMap
@@ -26,7 +31,6 @@ import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.MapView
 import com.kakao.vectormap.camera.CameraUpdateFactory
-import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -56,18 +60,45 @@ fun KakaoMapScreen(modifier: Modifier = Modifier) {
     ) == PackageManager.PERMISSION_GRANTED
 
     // 요청 및 위치 갱신
-    LaunchedEffect(permissionsGranted) {
+    DisposableEffect(permissionsGranted) {
         permissionsState.launchMultiplePermissionRequest()
-        if (permissionsGranted && hasFine && hasCoarse) {
-            try {
-                val location = fusedLocationClient
-                    .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-                    .await()
-                locationState.value = location
-                Log.d("GPS", "위치 가져옴: ${location.latitude}, ${location.longitude}")
-            } catch (e: Exception) {
-                Log.e("GPS", "위치 가져오기 실패: ${e.message}")
+        if (permissionsGranted && (hasFine || hasCoarse)) {
+            // LocationRequest 생성 (5초 간격, 고정밀도)
+//            val locationRequest = LocationRequest.create().apply {
+//                interval = 5000L
+//                fastestInterval = 2000L
+//                priority = Priority.PRIORITY_HIGH_ACCURACY
+//            }
+            val locationRequest = LocationRequest.Builder(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                5000L
+            ).apply {
+                setMinUpdateIntervalMillis(2000L)
+            }.build()
+
+            // 콜백 정의
+            val locationCallback = object : LocationCallback() {
+                override fun onLocationResult(result: LocationResult) {
+                    result.lastLocation?.let {
+                        locationState.value = it
+                        Log.d("GPS", "위치 업데이트: ${it.latitude}, ${it.longitude}")
+                    }
+                }
             }
+
+            // 위치 업데이트 요청
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+
+            // Composable이 dispose될 때 위치 업데이트 해제
+            onDispose {
+                fusedLocationClient.removeLocationUpdates(locationCallback)
+            }
+        } else {
+            onDispose {  }
         }
     }
 
