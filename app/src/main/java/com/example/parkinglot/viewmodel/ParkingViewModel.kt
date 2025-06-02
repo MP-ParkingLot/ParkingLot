@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.parkinglot.dto.request.NearByParkinglotRequest
 import com.example.parkinglot.dto.response.NearByParkinglotResponse
+import com.example.parkinglot.mapper.toUiModelList
 import com.example.parkinglot.repository.ParkingRepository
 import com.example.parkinglot.uistate.ParkingLotUiState
 import kotlinx.coroutines.launch
@@ -17,26 +18,25 @@ import kotlinx.coroutines.launch
 class ParkingViewModel : ViewModel() {
 
     var uiState by mutableStateOf(ParkingLotUiState())
-    private set
+        private set
+
     private val repository = ParkingRepository()
 
     private val _parkingData = MutableLiveData<NearByParkinglotResponse>()
     val parkingData: LiveData<NearByParkinglotResponse> = _parkingData
 
-    //주차장 정보 조회용
+    // 주차장 정보 조회
     fun fetchParkingLots(request: NearByParkinglotRequest) {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
-
             try {
                 val result = repository.getNearbyParkingLots(request)
                 uiState = uiState.copy(
-                    parkingLots = result.parkingLot.toList(), // map → list 변환 필요 시
+                    parkingLots = result.parkingLot.toList(),
                     isLoading = false,
                     error = null
                 )
                 Log.d("ParkingViewModel", "API 성공: $result")
-
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoading = false,
@@ -47,15 +47,14 @@ class ParkingViewModel : ViewModel() {
         }
     }
 
-    //빈자리 필터 용
+    // 빈자리 필터
     fun fetchEmptyParkingLots(request: NearByParkinglotRequest) {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
-
             try {
                 val result = repository.getEmptyParkingLots(request)
                 uiState = uiState.copy(
-                    parkingLots = result.parkingLot.toList(), // Map → List 변환
+                    parkingLots = result.parkingLot.toList(),
                     isLoading = false,
                     error = null
                 )
@@ -70,11 +69,10 @@ class ParkingViewModel : ViewModel() {
         }
     }
 
-    //무료 필터 용
+    // 무료 필터
     fun fetchFreeParkingLots(request: NearByParkinglotRequest) {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
-
             try {
                 val result = repository.getFreeParkingLots(request)
                 uiState = uiState.copy(
@@ -93,11 +91,10 @@ class ParkingViewModel : ViewModel() {
         }
     }
 
-    //행정 구역 별 용
+    // 행정구 필터
     fun fetchRegionParkingLots(district: String) {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
-
             try {
                 val result = repository.getRegionParkingLots(district)
                 uiState = uiState.copy(
@@ -116,5 +113,3 @@ class ParkingViewModel : ViewModel() {
         }
     }
 }
-
-
