@@ -33,6 +33,8 @@ class ParkingViewModel : ViewModel() {
     fun fetchParkingLots(start: Int = 1, end: Int = 1000) = viewModelScope.launch {
         uiState = uiState.copy(isLoading = true, error = null)
         try {
+            Log.d(TAG_GEO, "⚙️ Kakao REST API Key = ${BuildConfig.KAKAO_REST_KEY}")
+
             val rows = repo.getParkingLotDetails(
                 apiKey = BuildConfig.SEOUL_API_KEY,
                 startIndex = start,
@@ -57,7 +59,13 @@ class ParkingViewModel : ViewModel() {
     }
 
     private suspend fun geocodeParkingLot(lot: ParkingLotDetail, index: Int): ParkingLotDetail {
-        val address = lot.address ?: return lot
+        val address = lot.address
+        Log.d(TAG_GEO, "[$index] address check: ${lot.name} = $address")
+        if (address == null) {
+            Log.w(TAG_GEO, "[$index] ⛔ 주소 누락으로 변환 생략: ${lot.name}")
+            return lot
+        }
+
         return try {
             val response = kakaoService.searchAddress(
                 query = address,
@@ -68,14 +76,14 @@ class ParkingViewModel : ViewModel() {
                 response.body()?.documents?.firstOrNull()?.address?.let {
                     lot.lat = it.y.toDoubleOrNull()
                     lot.lng = it.x.toDoubleOrNull()
-                    Log.d(TAG_GEO, "[$index] ✔ ${lot.name} ${lot.lat}, ${lot.lng}")
-                }
+                    Log.d(TAG_GEO, "[$index] ✔ 좌표 변환 완료: ${lot.name} ${lot.lat}, ${lot.lng}")
+                } ?: Log.w(TAG_GEO, "[$index] ⚠️ 변환 실패: address 객체 null")
             } else {
-                Log.e(TAG_GEO, "[$index] ❌ ${lot.name} 응답 실패: ${response.code()}")
+                Log.e(TAG_GEO, "[$index] ❌ 응답 실패 (${response.code()}): ${lot.name}")
             }
             lot
         } catch (e: Exception) {
-            Log.e(TAG_GEO, "[$index] ❌ ${lot.name} 예외: ${e.localizedMessage}")
+            Log.e(TAG_GEO, "[$index] ❌ 예외 발생 (${lot.name}): ${e.localizedMessage}")
             lot
         }
     }
