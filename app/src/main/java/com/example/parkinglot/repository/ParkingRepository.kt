@@ -1,28 +1,42 @@
+//  com/example/parkinglot/repository/ParkingDetailRepository.kt
 package com.example.parkinglot.repository
 
-import com.example.parkinglot.dto.request.NearByParkinglotRequest
-import com.example.parkinglot.dto.response.EmptyParkinglotResponse
-import com.example.parkinglot.dto.response.FreeParkinglotResponse
+import android.util.Log
+import com.example.parkinglot.dto.response.ParkingLotDetail
+import com.example.parkinglot.service.RetrofitClient          // ← 이미 만들어둔 싱글턴
+import com.example.parkinglot.service.SeoulParkingService
+import retrofit2.Response
 import com.example.parkinglot.dto.response.NearByParkinglotResponse
-import com.example.parkinglot.dto.response.RegionParkinglotResponse
 
-class ParkingRepository {
-    //주차장 정보 조회
-    suspend fun getNearbyParkingLots(request: NearByParkinglotRequest) =
-        RetrofitClient.seoulParkingService.getNearbyParkingLots(request)
+class ParkingRepository(
+    /** DI 를 쓰지 않는다면 RetrofitClient 로부터 직접 주입 */
+    private val service: SeoulParkingService = RetrofitClient.seoulParkingService
+) {
 
-    //빈자리 필터
-    suspend fun getEmptyParkingLots(request: NearByParkinglotRequest): EmptyParkinglotResponse {
-        return RetrofitClient.seoulParkingService.getEmptyParkingLots(request)
-    }
+    private val TAG = "ParkingDetailRepo"
 
-    //무료 필터
-    suspend fun getFreeParkingLots(request: NearByParkinglotRequest): FreeParkinglotResponse {
-        return RetrofitClient.seoulParkingService.getFreeParkingLots(request)
-    }
+    /**
+     * start/end 구간의 주차장 상세 목록을 받아 반환
+     */
+    suspend fun getParkingLotDetails(
+        apiKey: String,
+        startIndex: Int,
+        endIndex: Int
+    ): List<ParkingLotDetail> {
 
-    //행정 구역 별
-    suspend fun getRegionParkingLots(district: String): RegionParkinglotResponse {
-        return RetrofitClient.seoulParkingService.getRegionParkingLots(district)
+        /* ① HTTP 요청 */
+        val httpRes: Response<NearByParkinglotResponse> =
+            service.getParkingLots(apiKey, startIndex, endIndex)
+
+        /* ② 성공 여부 확인 */
+        if (!httpRes.isSuccessful) {
+            Log.e(TAG, "❌ Seoul API HTTP ${httpRes.code()}")
+            throw RuntimeException("Seoul API HTTP ${httpRes.code()}")
+        }
+
+        /* ③ body → rows 추출 (널-세이프) */
+        val rows = httpRes.body()?.rows ?: emptyList()
+        Log.d(TAG, "✅ rows=${rows.size}")
+        return rows
     }
 }
