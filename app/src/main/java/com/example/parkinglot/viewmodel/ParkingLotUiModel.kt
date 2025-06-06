@@ -1,11 +1,10 @@
-// 위치: com.example.parkinglot.uistate
-package com.example.parkinglot.uistate
+package com.example.parkinglot.model
 
 data class ParkingLotUiModel(
-    val id: String,
-    val empty: String,
-    val total: String,
+    val empty: Int,
+    val total: Int,
     val ratio: String,
     val charge: Int,
-    val isFree: Boolean
+    val lat: Double,
+    val lng: Double
 )
