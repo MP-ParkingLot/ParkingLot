@@ -1,16 +1,10 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.secrets.gradle.plugin)
 }
 
-
-val localProperties = Properties().apply {
-    load(project.rootProject.file("local.properties").inputStream())
-}
-val kakaoApiKey: String = localProperties["KAKAO_MAP_KEY"] as String
 
 android {
     namespace = "com.example.parkinglot"
@@ -25,8 +19,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // 👇 여기에 KAKAO_MAP_KEY 전달
-        manifestPlaceholders["KAKAO_MAP_KEY"] = kakaoApiKey
+        buildConfigField("String", "SEOUL_API_KEY", "\"${properties["SEOUL_API_KEY"]}\"")
+        buildConfigField("String", "KAKAO_REST_KEY", "\"${properties["KAKAO_REST_KEY"]}\"")
+
     }
 
     buildTypes {
@@ -38,7 +33,6 @@ android {
             )
         }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -48,10 +42,12 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -60,26 +56,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-
-    // --- 추가 의존성 시작 ---
-
-    // Kakao Map SDK (v2 기준)
-    implementation("com.kakao.sdk:v2-map:2.15.0") // 최신 버전 확인 필요
-
-    // Retrofit2
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-
-    // Google Play Services - Location
-    implementation("com.google.android.gms:play-services-location:21.0.1")
-
-    // 권한 요청 (Accompanist)
-    implementation("com.google.accompanist:accompanist-permissions:0.28.0")
-
-    // Gson
-    implementation("com.google.code.gson:gson:2.10.1")
-
-    // --- 테스트 및 디버그 ---
+    implementation(libs.kakao.maps)
+    implementation(libs.accompanist.permissions)
+    implementation(libs.play.services.location)
+    implementation(libs.kotlinx.coroutines.play.services)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -87,4 +67,19 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    //retrofit2
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    //xml 응답을 처리하기 위한 의존성
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation("org.simpleframework:simple-xml:2.7.1")
+    implementation("com.squareup.retrofit2:converter-simplexml:2.9.0")
+}
+
+secrets {
+    propertiesFileName = "secrets.properties"
+    defaultPropertiesFileName = "local.defaults.properties"
 }
