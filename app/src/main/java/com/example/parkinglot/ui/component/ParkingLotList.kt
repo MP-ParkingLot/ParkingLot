@@ -26,9 +26,10 @@ fun ParkingLotList(parkingLots: List<Pair<String, ParkingLotDetail>>) {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = "장소 ID: $id", style = MaterialTheme.typography.titleSmall)
-                    Text(text = "빈자리: ${detail.empty} / ${detail.total}")
-                    Text(text = "혼잡도: ${detail.ratio}")
-                    Text(text = "요금: ${detail.charge}원")
+                    Text(text = "주차장명: ${detail.name ?: "정보 없음"}")
+                    Text(text = "위치: ${detail.address ?: "주소 정보 없음"}")
+                    Text(text = "빈자리: ${detail.nowPrkVhclCnt ?: "알 수 없음"} / ${detail.tpkct ?: "알 수 없음"}")
+                    Text(text = "요금: ${detail.charge ?: "요금 정보 없음"}원")
                 }
             }
         }
@@ -39,10 +40,26 @@ fun ParkingLotList(parkingLots: List<Pair<String, ParkingLotDetail>>) {
 @Composable
 fun ParkingLotListPreview() {
     val sampleData = listOf(
-        "장소ID_1" to ParkingLotDetail("190", "200", "BUSY", 3000),
-        "장소ID_2" to ParkingLotDetail("50", "100", "MODERATE", 4000),
-        "장소ID_3" to ParkingLotDetail("10", "120", "PLENTY", 4500),
-        "장소ID_4" to ParkingLotDetail("200", "200", "FULL", 1000)
+        "장소ID_1" to ParkingLotDetail(
+            code = "190",
+            name = "세종로 주차장",
+            address = "서울 종로구",
+            tpkct = 200,
+            nowPrkVhclCnt = 190,
+            charge = "3000",
+            latString = "37.5665",
+            lngString = "126.9780"
+        ),
+        "장소ID_2" to ParkingLotDetail(
+            code = "50",
+            name = "종묘 주차장",
+            address = "서울 종로구",
+            tpkct = 100,
+            nowPrkVhclCnt = 50,
+            charge = "4000",
+            latString = "37.5651",
+            lngString = "126.9895"
+        )
     )
     ParkingLotList(parkingLots = sampleData)
 }
