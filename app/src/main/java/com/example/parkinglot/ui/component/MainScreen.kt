@@ -59,7 +59,7 @@ fun MainScreen(viewModel: ParkingViewModel = viewModel()) {
             else -> {
                 KakaoMapScreen(
                     modifier = Modifier.weight(1f),
-                    viewModel = viewModel
+                    //viewModel = viewModel
                 )
             }
         }
