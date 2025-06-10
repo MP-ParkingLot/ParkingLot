@@ -1,17 +1,17 @@
-// com/example/parkinglot/service/KakaoAddressSearchService.kt
+//app/src/main/java/com/example/parkinglot/service/KakaoAddressSearchService.kt
 package com.example.parkinglot.service
 
-import com.example.parkinglot.dto.response.KakaoAddressResponse
+import com.example.parkinglot.dto.response.KakaoLocalResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Query
 
+// 카카오 주소 검색 API 인터페이스
 interface KakaoAddressSearchService {
-    @GET("v2/local/search/address.json")
+    @GET("/v2/local/search/address.json") // 주소 검색 API 엔드포인트
     suspend fun searchAddress(
-        @Query("query") query: String,
-        // @Header("Authorization") 어노테이션을 사용하여 "KakaoAK " 접두사를 포함한 키를 전달합니다.
-        @Header("Authorization") apiKey: String
-    ): Response<KakaoAddressResponse>
+        @Query("query") query: String, // 검색할 주소 또는 키워드
+        @Header("Authorization") apiKey: String // 인증 키
+    ): Response<KakaoLocalResponse> // AddressResponse DTO 반환
 }
