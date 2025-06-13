@@ -1,7 +1,6 @@
 package com.example.parkinglot
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -18,16 +17,19 @@ fun AppNavHost() {
     val reviewRepository = remember { ReviewRepository { AuthManager.accessToken } }
     val currentUser by AuthManager.currentUser.collectAsState()
 
-    // TODO (로그인 담당자): 실제 로그인 화면이 완성되면 이 LaunchedEffect는 삭제되어야 합니다.
-    // 현재는 테스트를 위해 앱 시작 시 가상 로그인을 수행합니다.
-    LaunchedEffect(Unit) {
-        AuthManager.onLoginSuccess("FAKE_ACCESS_TOKEN_FOR_TESTING", UserInfo(1L, "정우준"))
-    }
-
     NavHost(
         navController = navController,
-        startDestination = "review_list/건국대학교 서울캠퍼스주차장"
+        startDestination = "map"
     ) {
+        composable(route = "map") {
+            MapScreen(//지도 담당자가 만든 composable 함수의 이름으로 변경해야 합니다,
+                // 현재는 composable로 선언한 지도가 없고, loacationid와 연동이 되지 않아서 빨간색으로 표시됩니다
+                onNavigateToReview = { locationId ->
+                    navController.navigate("review_list/$locationId")
+                }
+            )
+        }
+
         composable(
             route = "review_list/{locationId}",
             arguments = listOf(navArgument("locationId") { type = NavType.StringType })
@@ -38,7 +40,7 @@ fun AppNavHost() {
             ReviewScreen(
                 viewModel = viewModel,
                 locationId = locationId,
-                onNavigateBack = { /* TODO: 지도 화면으로 돌아가는 로직 */ },
+                onNavigateBack = { navController.popBackStack() },
                 onNavigateToWriteReview = { navController.navigate("write_review") },
                 onNavigateToUpdateReview = { review ->
                     navController.currentBackStackEntry?.savedStateHandle?.set("review_to_update", review)
