@@ -17,4 +17,19 @@ interface KakaoLocalApiService {
         @Query("radius") radius: Int = 2000, // 미터 단위
         @Query("sort") sort: String = "distance" // 거리순 정렬
     ): Response<KakaoLocalResponse>
+
+    @GET("/v2/local/geo/coord2address.json")
+    suspend fun coord2address(
+        @Header("Authorization") apiKey: String,
+
+        @Query("x") longitude: Double,
+        @Query("y") latitude:  Double
+    ): Response<KakaoLocalResponse>
+
+    @GET("/v2/local/search/address.json")
+    suspend fun searchAddress(
+        @Header("Authorization") apiKey: String,
+        @Query("query") query: String
+    ): Response<KakaoLocalResponse>
+
 }
