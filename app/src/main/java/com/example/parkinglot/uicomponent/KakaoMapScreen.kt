@@ -42,6 +42,9 @@ import com.kakao.vectormap.label.LabelLayer
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles // 여전히 필요하지만 사용 방식이 달라집니다.
+import com.kakao.vectormap.label.LabelOptions
+import com.kakao.vectormap.label.LabelStyle
+import com.kakao.vectormap.label.LabelStyles
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -71,6 +74,7 @@ fun KakaoMapScreen(
     val initialCameraMovedByLocation = remember { mutableStateOf(false) }
     // 주차장 정보 맵은 그대로 유지 (LabelOptions의 ID와 매핑)
     val parkingLotInfoMap = remember { mutableStateOf<Map<String, CombinedParkingLotInfo>>(emptyMap()) }
+    val initialCameraMoved = remember { mutableStateOf(false) }
 
     // 권한 체크 및 위치 업데이트 로직 (이 부분은 동일)
     val permissionsGranted = permissionsState.permissions.any { it.status.isGranted }
@@ -174,6 +178,66 @@ fun KakaoMapScreen(
                 .setStyles(LabelStyles.from(myLocationStyle))
             layer.addLabel(myOpts)
             Log.d("KakaoMapScreen", "내 위치 마커 업데이트: ${loc.latitude}, ${loc.longitude}")
+        // 지도 준비됐을 때 최초 위치 설정
+//        locationState.value?.let { location ->
+//            kakaoMap.moveCamera(
+//                CameraUpdateFactory.newCenterPosition(
+//                    LatLng.from(location.latitude, location.longitude)
+//                )
+//            )
+//            Log.d("GPS", "초기 지도 이동 완료")
+//
+//
+//            if(kakaoMap.labelManager != null) {
+//                Log.d("labelManager", "Not null")
+//                val styles = kakaoMap.labelManager?.addLabelStyles(
+//                    LabelStyles.from(LabelStyle.from(R.drawable.here_24))
+//                )
+//                val options = LabelOptions.from(
+//                    LatLng.from(location.latitude, location.longitude)
+//                ).setStyles(styles)
+//                val layer = kakaoMap.labelManager?.getLayer()
+//                layer?.addLabel(options)
+//            } else {
+//                Log.d("labelManager", "Null")
+//            }
+//        }
+    }
+
+    // 위치 변경 시 레이블 이동
+    LaunchedEffect(locationState.value) {
+        val location = locationState.value
+        val map = kakaoMapState.value
+        if (permissionsGranted && location != null && map != null) {
+            if(initialCameraMoved.value == false)
+            {
+                map.moveCamera(
+                    CameraUpdateFactory.newCenterPosition(
+                        LatLng.from(location.latitude, location.longitude)
+                    )
+                )
+                initialCameraMoved.value = true
+                Log.d("GPS", "위치 변경에 따른 지도 이동: ${location.latitude}, ${location.longitude}")
+            }
+
+            if(map.labelManager != null) {
+                val layer = map.labelManager?.getLayer()
+                layer?.removeAll()
+                val styles = map.labelManager?.addLabelStyles(
+                    LabelStyles.from(LabelStyle.from(R.drawable.my_location_64))
+                )
+                val options = LabelOptions.from(
+                    LatLng.from(location.latitude, location.longitude)
+                ).setStyles(styles)
+                if(layer != null) {
+                    layer.addLabel(options)
+                    Log.d("layer", "not null")
+                } else {
+                    Log.d("layer", "null")
+                }
+            } else {
+                Log.d("labelManager", "Null")
+            }
         }
 
         // 2) 주차장 마커

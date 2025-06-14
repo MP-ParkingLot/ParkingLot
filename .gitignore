@@ -49,3 +49,6 @@ google-services.json
 /test-results/
 /coverage/
 /jacoco/
+
+local.properties
+local.defaults.properties
