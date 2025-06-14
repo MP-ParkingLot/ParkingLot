@@ -37,18 +37,23 @@ import com.example.parkinglot.viewmodel.ParkingViewModel
 @Composable
 fun MainScreen(
     viewModel: ParkingViewModel = viewModel(),
-    onNavigateToReview: (String) -> Unit = {}      // ⭐ 기본값 제공
+    onNavigateToReview: (String) -> Unit = {}
 ) {
-    /* ───── 1) 상태 구독 ───── */
-    val uiState             by viewModel.uiState.collectAsState()
+    /* 1) 상태 구독 */
+    val uiState by viewModel.uiState.collectAsState()
     val filteredParkingLots by viewModel.filteredParkingLots.collectAsState()
-    var selectedParkingLot  by remember { mutableStateOf<CombinedParkingLotInfo?>(null) }
-
-    val currentLocation  by viewModel.currentLocation.collectAsState()
-    val selectedFilter   by viewModel.selectedFilter.collectAsState()
+    val selectedFilter by viewModel.selectedFilter.collectAsState()
     val selectedDistrict by viewModel.selectedDistrict.collectAsState()
+    val distanceKm by viewModel.distanceKm.collectAsState()
+    val currentLocation by viewModel.currentLocation.collectAsState()
     val mapCenterRequest by viewModel.mapCenterMoveRequest.collectAsState()
 
+    var selectedParkingLot by remember { mutableStateOf<CombinedParkingLotInfo?>(null) }
+    var showRadiusDialog by remember { mutableStateOf(false) }
+
+    val filterButtonsEnabled = selectedDistrict.isEmpty()
+
+    /* 버튼들은 구가 선택되어 있으면 비활성화 */
     val areFilterButtonsEnabled = selectedDistrict.isEmpty()
 
     /* ─────────────────────────────────────
@@ -57,9 +62,14 @@ fun MainScreen(
     LaunchedEffect(currentLocation, selectedDistrict) {
         if (selectedDistrict.isEmpty()) {
             currentLocation?.let { loc ->
-                if (uiState.parkingLots.isEmpty() || selectedFilter == "거리") {
-                    viewModel.refreshAroundMe(loc.latitude, loc.longitude)
-                    Log.d("MainScreen", "🔄 Data fetched (no district filter)")
+                if (uiState.parkingLots.isEmpty()) {
+                    /* ▼ 수정: autoSetDistrict = false ▼ */
+                    viewModel.refreshAroundMe(
+                        lat = loc.latitude,
+                        lon = loc.longitude,
+                        autoSetDistrict = false      // ← 구/필터 자동 선택하지 않음
+                    )
+                    Log.d("MainScreen", "🔄 첫 데이터 로드(구-선택 없음)")
                 }
             } ?: Log.w("MainScreen", "Current location null")
         }
@@ -70,27 +80,37 @@ fun MainScreen(
        ───────────────────────────────────── */
     Box(Modifier.fillMaxSize()) {
 
-        /* 3-1  지도 */
+        /* 3-1 지도 */
         KakaoMapScreen(
-            modifier               = Modifier.fillMaxSize(),
-            parkingLots            = filteredParkingLots,
-            onMarkerClick          = { lot -> selectedParkingLot = lot },
-            onLocationUpdate       = { viewModel.updateCurrentLocation(it) },
-            mapCenterRequest       = mapCenterRequest,
-            onMapCenterMoveHandled = viewModel::onMapCenterMoveHandled   // ← 끝 콤마 삭제
+            modifier = Modifier.fillMaxSize(),
+            parkingLots = filteredParkingLots,
+            onMarkerClick = { lot -> selectedParkingLot = lot },
+            onLocationUpdate = { viewModel.updateCurrentLocation(it) },
+            mapCenterRequest = mapCenterRequest,
+            onMapCenterMoveHandled = viewModel::onMapCenterMoveHandled
         )
 
-        /* 3-2  세로 필터 버튼 */
+        /* 3-2 세로 필터 버튼 */
         VerticalFilterButtons(
             selectedFilter = selectedFilter,
-            onSelectFilter = { if (areFilterButtonsEnabled) viewModel.selectFilter(it) },
-            isEnabled      = areFilterButtonsEnabled,
-            modifier       = Modifier
+            onSelectFilter = {
+                if (!filterButtonsEnabled) return@VerticalFilterButtons
+                viewModel.selectFilter(it)
+                if (it == "거리") showRadiusDialog = true
+            },
+            isEnabled = filterButtonsEnabled,
+            modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 48.dp, end = 18.dp)
         )
-
-        /* 3-3  구(區) 드롭다운 */
+        if (showRadiusDialog) {
+            DistanceRadiusDialog(
+                currentKm = distanceKm,
+                onRadiusSelected = viewModel::setDistanceKm,
+                onDismiss = { showRadiusDialog = false }
+            )
+        }
+        /* 3-3 구 드롭다운 */
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -113,22 +133,22 @@ fun MainScreen(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text  = displayName,
+                            text = displayName,
                             fontSize = 20.sp,
                             style = MaterialTheme.typography.titleLarge
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text  = when (lot.ratio?.uppercase()) {
-                                "PLENTY"   -> "여유"
+                            text = when (lot.ratio?.uppercase()) {
+                                "PLENTY" -> "여유"
                                 "MODERATE" -> "보통"
-                                "BUSY"     -> "혼잡"
-                                "FULL"     -> "만차"
-                                else       -> lot.ratio ?: "정보 없음"
+                                "BUSY" -> "혼잡"
+                                "FULL" -> "만차"
+                                else -> lot.ratio ?: "정보 없음"
                             },
                             fontSize = 14.sp,
-                            color    = when (lot.ratio?.uppercase()) {
-                                "PLENTY"   -> Color(0xFF4CAF50)
+                            color = when (lot.ratio?.uppercase()) {
+                                "PLENTY" -> Color(0xFF4CAF50)
                                 "MODERATE" -> Color(0xFFFFC107)
                                 "BUSY", "FULL" -> Color(0xFFF44336)
                                 else -> MaterialTheme.colorScheme.onSurface
@@ -140,7 +160,7 @@ fun MainScreen(
                 text = {
                     Column {
                         Text(
-                            text  = lot.LocationID.takeUnless { it.isNullOrBlank() }
+                            text = lot.LocationID.takeUnless { it.isNullOrBlank() }
                                 ?: lot.addressName ?: "주소 정보 없음",
                             fontSize = 14.sp
                         )
@@ -178,8 +198,8 @@ fun MainScreen(
                         Text("리뷰")
                     }
                 },
-                shape           = RoundedCornerShape(12.dp),
-                containerColor  = MaterialTheme.colorScheme.surfaceVariant
+                shape = RoundedCornerShape(12.dp),
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
