@@ -2,21 +2,12 @@
 package com.example.parkinglot.repository
 
 // ... (existing imports, no change here)
-import android.R.attr.y
 import com.example.parkinglot.BuildConfig
 import com.example.parkinglot.dto.request.NearByParkinglotRequest
-import com.example.parkinglot.dto.response.Document // Already correct
-import com.example.parkinglot.dto.response.KakaoLocalResponse // Already correct
-
-import com.example.parkinglot.dto.response.EmptyParkinglotResponse
-import com.example.parkinglot.dto.response.FreeParkinglotResponse
-import com.example.parkinglot.dto.response.NearByParkinglotResponse
-import com.example.parkinglot.dto.response.ParkingLotDetail
-import com.example.parkinglot.dto.response.RegionParkinglotResponse
-import com.example.parkinglot.service.KakaoLocalRetrofitClient // This is likely still being used if KakaoLocalRepository is not fully integrated
+import com.example.parkinglot.dto.response.*
+import com.example.parkinglot.service.KakaoLocalRetrofitClient     // KakaoLocalApiService 래퍼
 import com.example.parkinglot.service.ParkingLotRetrofitClient
 import retrofit2.Response
-import kotlin.collections.map
 
 /**
  * 주차장 관련 데이터를 다양한 데이터 소스(사용자 정의 백엔드, 카카오 로컬 API)로부터 가져오는 레포지토리 클래스입니다.
@@ -25,128 +16,197 @@ import kotlin.collections.map
  */
 class ParkingLotRepository {
 
-    // 사용자 정의 백엔드 API 서비스 인스턴스
-    private val api = ParkingLotRetrofitClient.parkingLotApiService
-    // 카카오 로컬 API 중 카테고리 검색을 위한 서비스 인스턴스 (PK6: 주차장)
-    // IMPORTANT: If you are using KakaoLocalRepository, this 'local' instance should probably be from KakaoLocalRepository.
-    // For now, I'm assuming 'local' still refers to KakaoLocalRetrofitClient.service (which returns Response<KakaoLocalResponse>)
-    // If you implemented KakaoLocalRepository as a separate repository, you should inject it here instead of direct Retrofit client.
-    private val local = KakaoLocalRetrofitClient.service // This refers to KakaoLocalApiService, which returns Response<KakaoLocalResponse>
+    /* ───────────────────────────────────────────────
+       "A 방법" : 주차장 상태 + 카카오 카테고리 좌표
+       ─────────────────────────────────────────────── */
+    data class NearbyParkingLotsResult(
+        val details : List<ParkingLotDetail>,                  // 실시간 상태
+        val coordMap: Map<String, Pair<Double, Double>>        // addr / place → (lat,lon)
+    )
 
-    // Assuming you have a KakaoLocalRepository instance as well, if you're using it
-    // private val kakaoLocalRepository = KakaoLocalRepository()
-
-
-    // 카카오 로컬 API 중 주소 검색을 위한 서비스 인스턴스 (지오코딩/역지오코딩)
-    private val kakaoAddressService = KakaoLocalRetrofitClient.addressSearchService
+    /** 0) Retrofit 서비스 핸들들 */
+    private val api              = ParkingLotRetrofitClient.parkingLotApiService
+    private val local            = KakaoLocalRetrofitClient.service          // KakaoLocalApiService
+    private val kakaoAddrService = KakaoLocalRetrofitClient.addressSearchService
 
 
-    /**
-     * 카카오 로컬 API를 사용하여 특정 좌표 및 반경 내의 주차장 장소 정보를 검색합니다.
-     * 이 함수는 [com.example.parkinglot.network.KakaoLocalApiService.searchPlacesByCategory]를 호출합니다.
-     *
-     * @param latitude 검색 중심 위치의 위도.
-     * @param longitude 검색 중심 위치의 경도.
-     * @param radius 검색 반경 (미터 단위, 기본값 2000m).
-     * @return 카카오 로컬 API 응답에서 파싱된 [Document] 객체들의 리스트를 반환합니다.
-     * 각 Document는 장소 이름, 도로명 주소, 위도, 경도 등의 정보를 포함합니다.
-     * @throws RuntimeException 네트워크 요청 실패 시 발생합니다.
-     */
-    suspend fun getNearbyKakaoParkingLots(
-        latitude: Double,
-        longitude: Double,
-        radius: Int = 2000
-    ): List<Document> {
-        // 카카오 REST API 키를 BuildConfig에서 안전하게 가져와 헤더로 전달
-        val authHeader = "KakaoAK ${BuildConfig.KAKAO_REST_KEY}" // KAKAO_REST_KEY 사용 (수정)
+    /* ───────────────────────────────────────────────
+       1.  좌표 → 구 이름 (coord2address)
+       ─────────────────────────────────────────────── */
+    suspend fun getDistrictByCoords(
+        latitude : Double,
+        longitude: Double
+    ): String? {
+        val auth = "KakaoAK ${BuildConfig.KAKAO_REST_KEY}"
+        val resp = local.coord2address(
+            apiKey    = auth,
+            longitude = longitude,
+            latitude  = latitude
+        )
+        if (!resp.isSuccessful) return null
 
-        // *** FIX START ***
-        // The return type of local.searchPlacesByCategory is Response<KakaoLocalResponse>
-        // So, we need to access .body() first.
-        val kakaoResponse: KakaoLocalResponse? = local.searchPlacesByCategory(
-            apiKey = authHeader,
-            categoryGroupCode = "PK6", // 주차장 카테고리 코드 명시
-            longitude = longitude, // Double 타입 유지
-            latitude = latitude,   // Double 타입 유지
-            radius = radius
-        ).body() // <-- Call .body() here
-        // *** FIX END ***
+        val document = resp.body()?.documents?.firstOrNull() ?: return null
 
-
-        // Check if the response body is null, if so, return empty list
-        if (kakaoResponse == null) {
-            throw RuntimeException("카카오 로컬 카테고리 검색 응답 본문이 null입니다.")
+        // 1순위: 도로명 주소의 region2depthName에서 "구" 이름 직접 추출
+        document.roadAddressDetail?.region2depthName?.let { region2 ->
+            if (region2.endsWith("구")) return region2
         }
-        return kakaoResponse.documents ?: emptyList() // Now 'documents' is resolved on kakaoResponse
+
+        // 2순위: 지번 주소의 region2depthName에서 "구" 이름 직접 추출
+        document.addressDetail?.region2depthName?.let { region2 ->
+            if (region2.endsWith("구")) return region2
+        }
+
+        // 3순위: 전체 주소명에서 정규식으로 "구" 추출
+        val addressName = document.roadAddressDetail?.addressName
+            ?: document.addressDetail?.addressName
+            ?: document.addressName
+            ?: return null
+
+        return Regex("""\s(\S+구)\s""").find(addressName)
+            ?.groupValues
+            ?.getOrNull(1)
     }
 
-    /**
-     * 카카오 로컬 API를 사용하여 주소 문자열을 기반으로 주소 정보를 검색합니다 (지오코딩).
-     * 이 함수는 백엔드에서 주차장 ID(주소/이름)만 주고 좌표는 주지 않는 경우,
-     * 해당 주소의 좌표 및 상세 정보를 가져오는 데 사용됩니다.
-     * 이 함수는 [com.example.parkinglot.network.KakaoLocalApiService.searchAddress]를 호출합니다.
-     *
-     * @param query 검색할 주소 문자열 (예: "서울 강남구 테헤란로 132").
-     * @return 검색된 주소 정보 [Document] 객체들의 리스트를 반환합니다.
-     * @throws RuntimeException 네트워크 요청 실패 시 발생합니다.
-     */
-    suspend fun searchParkingLotsByAddress(query: String): List<Document> {
-        // 카카오 REST API 키를 BuildConfig에서 안전하게 가져와 헤더로 전달
-        val authHeader = "KakaoAK ${BuildConfig.KAKAO_REST_KEY}" // KAKAO_REST_KEY 사용 (수정)
-        // *** FIX START ***
-        val kakaoResponse: KakaoLocalResponse? = kakaoAddressService.searchAddress(
-            apiKey = authHeader,
-            query = query
-        ).body() // <-- Call .body() here
-        // *** FIX END ***
+    /*  편의 alias – ViewModel 에서 바로 호출할 수 있게 두 개 이름 유지 */
+    suspend fun coord2district(lat: Double, lon: Double): String? =
+        getDistrictByCoords(lat, lon)
 
-        if (kakaoResponse == null) {
-            throw RuntimeException("카카오 주소 검색 응답 본문이 null입니다.")
+
+    /* ───────────────────────────────────────────────
+       2.  "구" 이름으로 상태 + 좌표 세트 얻기
+       ─────────────────────────────────────────────── */
+    suspend fun getDistrictParkingLotsWithCoords(
+        district: String
+    ): NearbyParkingLotsResult {
+
+        android.util.Log.d("ParkingRepo", "=== 구별 주차장 조회 시작: $district ===")
+
+        /* 2-1) 백엔드에서 상태 */
+        val stateResp = api.getRegionParkingLots(district)
+        if (!stateResp.isSuccessful) {
+            val err = stateResp.errorBody()?.string()
+            android.util.Log.e("ParkingRepo", "백엔드 구별 주차장 조회 실패($district): ${stateResp.code()} $err")
+            throw RuntimeException("백엔드 구별 주차장 조회 실패($district): ${stateResp.code()} $err")
         }
-        return kakaoResponse.documents ?: emptyList()
+        val details = stateResp.body()?.parkingLot ?: emptyList()
+        android.util.Log.d("ParkingRepo", "백엔드에서 가져온 주차장 개수: ${details.size}")
+        details.take(3).forEach { lot ->
+            //android.util.Log.d("ParkingRepo", "주차장 예시: ${lot.id} - 현재: ${lot.currentParkingNum}/${lot.totalParkingNum}")
+        }
+
+        /* 2-2) 카카오 주소검색 → 좌표 매핑 */
+        val coordMap = mutableMapOf<String, Pair<Double, Double>>()
+        val auth     = "KakaoAK ${BuildConfig.KAKAO_REST_KEY}"
+
+        android.util.Log.d("ParkingRepo", "카카오 주소검색 시작...")
+        var successCount = 0
+        var failCount = 0
+
+        details.forEach { lot ->
+            val docs = kakaoAddrService
+                .searchAddress(apiKey = auth, query = lot.id)
+                .body()
+                ?.documents
+            val best = docs?.firstOrNull()
+
+            if (best != null) {
+                val lat = best.y.toDoubleOrNull() ?: 0.0
+                val lon = best.x.toDoubleOrNull() ?: 0.0
+                if (lat != 0.0 && lon != 0.0) {
+                    coordMap[lot.id] = lat to lon
+                    successCount++
+                    android.util.Log.v("ParkingRepo", "좌표 성공: ${lot.id} -> ($lat, $lon)")
+                } else {
+                    failCount++
+                    android.util.Log.w("ParkingRepo", "좌표 파싱 실패: ${lot.id} -> lat=$lat, lon=$lon")
+                }
+            } else {
+                failCount++
+                android.util.Log.w("ParkingRepo", "주소 검색 실패: ${lot.id}")
+            }
+        }
+
+        android.util.Log.d("ParkingRepo", "좌표 매핑 완료 - 성공: $successCount, 실패: $failCount")
+        android.util.Log.d("ParkingRepo", "=== 구별 주차장 조회 완료 ===")
+
+        return NearbyParkingLotsResult(details, coordMap)
     }
 
 
-    /**
-     * 카카오 로컬 API를 통해 얻은 주차장 장소 정보 (도로명 주소 또는 장소 이름)를 기반으로,
-     * 사용자 정의 백엔드에서 해당 주차장들의 상세 상태 정보를 조회합니다.
-     * 이 함수는 [com.example.parkinglot.network.ParkingLotApiService.getParkingLots]를 호출합니다.
-     *
-     * @param latitude 검색 중심 위치의 위도. (카카오 로컬 검색을 위한 파라미터)
-     * @param longitude 검색 중심 위치의 경도. (카카오 로컬 검색을 위한 파라미터)
-     * @param radius 검색 반경 (미터 단위, 기본값 2000m). (카카오 로컬 검색을 위한 파라미터)
-     * @return [ParkingLotDetail] 객체들의 리스트를 반환합니다. 각 객체는 주차장의 상세 정보와 현재 상태를 포함합니다.
-     * @throws RuntimeException 네트워크 요청 실패 시 발생합니다.
-     */
-    suspend fun getNearByParkingLots(
-        latitude: Double,
+    /* ───────────────────────────────────────────────
+       3.  현재 좌표 기준 전체(반경) 주차장 상태 + 좌표
+       ─────────────────────────────────────────────── */
+    suspend fun getNearByParkingLotsWithCoords(
+        latitude : Double,
         longitude: Double,
-        radius: Int = 2000
-    ): List<ParkingLotDetail> {
-        // 1단계: 카카오 로컬 API를 통해 주변 주차장 장소 정보 (Document)를 가져옵니다.
-        val kakaoDocs = getNearbyKakaoParkingLots(latitude, longitude, radius) // This calls the fixed function
+        radius   : Int = 2000
+    ): NearbyParkingLotsResult {
 
-        // 2단계: 가져온 카카오 문서에서 주차장 ID로 사용할 값을 추출합니다.
-        // roadAddressName이 있으면 그것을 사용하고, 없으면 placeName을 사용합니다.
-        val parkingLotAddresses = kakaoDocs.map { doc -> doc.roadAddressName.takeIf { it?.isNotBlank() == true } ?: doc.placeName }
+        /* 3-1) 카카오 PK6 카테고리 검색 → 좌표 */
+        val auth = "KakaoAK ${BuildConfig.KAKAO_REST_KEY}"
+        val kakaoResp = local
+            .searchPlacesByCategory(
+                apiKey            = auth,
+                categoryGroupCode = "PK6",
+                longitude         = longitude,
+                latitude          = latitude,
+                radius            = radius
+            )
+            .body()
+            ?: throw RuntimeException("카카오 카테고리 검색 응답이 null입니다.")
 
-        // 3단계: NearByParkinglotRequest DTO는 parkingLot 리스트만 받으므로, 이렇게 생성합니다.
-        val req = NearByParkinglotRequest(parkingLot = parkingLotAddresses)
-        val resp: Response<NearByParkinglotResponse> = api.getParkingLots(req)
+        val coordMap = kakaoResp.documents.associate { doc ->
+            val key = doc.roadAddressName.takeIf { !it.isNullOrBlank() } ?: doc.placeName
+            key to (doc.y.toDouble() to doc.x.toDouble())
+        }
+
+        /* 3-2) 백엔드에서 상태 */
+        val req  = NearByParkinglotRequest(coordMap.keys.toList())
+        val resp = api.getParkingLots(req)
         if (!resp.isSuccessful) {
-            val errorBody = resp.errorBody()?.string()
-            throw RuntimeException("백엔드 전체 주차장 상태 조회 실패: ${resp.code()} ${resp.message()} - ${errorBody}")
+            val err = resp.errorBody()?.string()
+            throw RuntimeException("백엔드 전체 주차장 상태 조회 실패: ${resp.code()} $err")
         }
-        return resp.body()?.parkingLot ?: emptyList()
+
+        return NearbyParkingLotsResult(resp.body()?.parkingLot ?: emptyList(), coordMap)
+    }
+
+
+    /* ───────────────────────────────────────────────
+       ▼▼▼ 아래 기존 메서드들은 타입/순서 오류만 수정 ▼▼▼
+       ─────────────────────────────────────────────── */
+
+    suspend fun getNearbyKakaoParkingLots(
+        latitude : Double,
+        longitude: Double,
+        radius   : Int = 2000
+    ): List<Document> {
+        val auth = "KakaoAK ${BuildConfig.KAKAO_REST_KEY}"
+        val kakaoResponse = local
+            .searchPlacesByCategory(
+                apiKey            = auth,
+                categoryGroupCode = "PK6",
+                longitude         = longitude,
+                latitude          = latitude,
+                radius            = radius
+            )
+            .body()
+            ?: throw RuntimeException("카카오 로컬 카테고리 검색 응답 본문이 null입니다.")
+        return kakaoResponse.documents
+    }
+
+    suspend fun searchParkingLotsByAddress(query: String): List<Document> {
+        val auth = "KakaoAK ${BuildConfig.KAKAO_REST_KEY}"
+        val kakaoResponse = kakaoAddrService
+            .searchAddress(apiKey = auth, query = query)
+            .body()
+            ?: throw RuntimeException("카카오 주소 검색 응답 본문이 null입니다.")
+        return kakaoResponse.documents
     }
 
     /**
-     * 특정 구 이름에 해당하는 주차장 정보를 사용자 정의 백엔드에서 조회합니다.
-     * 이 함수는 [com.example.parkinglot.network.ParkingLotApiService.getRegionParkingLots]를 호출합니다.
-     *
-     * @param district 조회할 구의 이름 (예: "강남구").
-     * @return [ParkingLotDetail] 객체들의 리스트를 반환합니다.
-     * @throws RuntimeException 네트워크 요청 실패 시 발생합니다.
+     * 특정 '구' 주차장 상세 상태 조회
      */
     suspend fun getParkingLotsByDistrict(district: String): List<ParkingLotDetail> {
         val resp: Response<RegionParkinglotResponse> = api.getRegionParkingLots(district)
@@ -157,30 +217,19 @@ class ParkingLotRepository {
         return resp.body()?.parkingLot ?: emptyList()
     }
 
-
     /**
-     * 카카오 로컬 API를 통해 얻은 주차장 장소 정보를 기반으로,
-     * 사용자 정의 백엔드에서 '빈 자리'가 있는 주차장들의 상세 상태 정보를 조회합니다.
-     * 이 함수는 [com.example.parkinglot.network.ParkingLotApiService.getEmptyParkingLots]를 호출합니다.
-     *
-     * @param latitude 검색 중심 위치의 위도.
-     * @param longitude 검색 중심 위치의 경도.
-     * @param radius 검색 반경 (미터 단위, 기본값 2000m).
-     * @return '빈 자리'가 있는 [ParkingLotDetail] 객체들의 리스트를 반환합니다.
-     * @throws RuntimeException 네트워크 요청 실패 시 발생합니다.
+     * 주변 '빈 자리' 주차장 상태 조회
      */
     suspend fun getEmptyParkingLots(
         latitude: Double,
         longitude: Double,
         radius: Int = 2000
     ): List<ParkingLotDetail> {
-        // 1단계: 카카오 로컬 API를 통해 주변 주차장 장소 정보 (Document)를 가져옵니다.
-        val kakaoDocs = getNearbyKakaoParkingLots(latitude, longitude, radius) // This calls the fixed function
+        val kakaoDocs = getNearbyKakaoParkingLots(latitude, longitude, radius)
+        val parkingLotAddresses = kakaoDocs.map { doc ->
+            doc.roadAddressName.takeIf { it?.isNotBlank() == true } ?: doc.placeName
+        }
 
-        // 2단계: 가져온 카카오 문서에서 주차장 ID로 사용할 값을 추출합니다.
-        val parkingLotAddresses = kakaoDocs.map { doc -> doc.roadAddressName.takeIf { it?.isNotBlank() == true } ?: doc.placeName }
-
-        // 3단계: NearByParkinglotRequest DTO는 parkingLot 리스트만 받으므로, 이렇게 생성합니다.
         val req = NearByParkinglotRequest(parkingLot = parkingLotAddresses)
         val resp: Response<EmptyParkinglotResponse> = api.getEmptyParkingLots(req)
         if (!resp.isSuccessful) {
@@ -191,28 +240,18 @@ class ParkingLotRepository {
     }
 
     /**
-     * 카카오 로컬 API를 통해 얻은 주차장 장소 정보를 기반으로,
-     * 사용자 정의 백엔드에서 '무료' 주차장들의 상세 상태 정보를 조회합니다.
-     * 이 함수는 [com.example.parkinglot.network.ParkingLotApiService.getFreeParkingLots]를 호출합니다.
-     *
-     * @param latitude 검색 중심 위치의 위도.
-     * @param longitude 검색 중심 위치의 경도.
-     * @param radius 검색 반경 (미터 단위, 기본값 2000m).
-     * @return '무료' 주차장 [ParkingLotDetail] 객체들의 리스트를 반환합니다.
-     * @throws RuntimeException 네트워크 요청 실패 시 발생합니다.
+     * 주변 '무료' 주차장 상태 조회
      */
     suspend fun getFreeParkingLots(
         latitude: Double,
         longitude: Double,
         radius: Int = 2000
     ): List<ParkingLotDetail> {
-        // 1단계: 카카오 로컬 API를 통해 주변 주차장 장소 정보 (Document)를 가져옵니다.
-        val kakaoDocs = getNearbyKakaoParkingLots(latitude, longitude, radius) // This calls the fixed function
+        val kakaoDocs = getNearbyKakaoParkingLots(latitude, longitude, radius)
+        val parkingLotAddresses = kakaoDocs.map { doc ->
+            doc.roadAddressName.takeIf { it?.isNotBlank() == true } ?: doc.placeName
+        }
 
-        // 2단계: 가져온 카카오 문서에서 주차장 ID로 사용할 값을 추출합니다.
-        val parkingLotAddresses = kakaoDocs.map { doc -> doc.roadAddressName.takeIf { it?.isNotBlank() == true } ?: doc.placeName }
-
-        // 3단계: NearByParkinglotRequest DTO는 parkingLot 리스트만 받으므로, 이렇게 생성합니다.
         val req = NearByParkinglotRequest(parkingLot = parkingLotAddresses)
         val resp: Response<FreeParkinglotResponse> = api.getFreeParkingLots(req)
         if (!resp.isSuccessful) {
