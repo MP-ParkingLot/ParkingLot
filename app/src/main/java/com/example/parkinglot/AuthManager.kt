@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/parkinglot/viewmodel/AuthManager.kt
 package com.example.parkinglot
 
 import kotlinx.coroutines.flow.MutableStateFlow

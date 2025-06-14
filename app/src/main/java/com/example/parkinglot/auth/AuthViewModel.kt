@@ -1,3 +1,4 @@
+//app/src/main/java/com/example/parkinglot/auth/AuthViewModel.kt
 package com.example.parkinglot.auth
 
 import android.content.Context
@@ -7,8 +8,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.parkinglot.AuthManager
-import com.example.parkinglot.UserInfo
+import com.example.parkinglot.auth.AuthClientProvider
+import com.example.parkinglot.auth.AuthRequest
+import com.example.parkinglot.auth.AuthResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -45,9 +47,6 @@ class AuthViewModel(val prefs: SharedPreferences) : ViewModel() {
             override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
                 if (response.isSuccessful) {
                     onSuccess()
-                    val token = prefs.getString("token", "")
-                    val user = UserInfo(id)
-                    token?.let { AuthManager.onLoginSuccess(token, user) }
                 } else {
                     onError("로그인 실패: ${response.code()} ${response.message()}")
                 }
