@@ -58,7 +58,7 @@ fun MainScreen(
         if (selectedDistrict.isEmpty()) {
             currentLocation?.let { loc ->
                 if (uiState.parkingLots.isEmpty() || selectedFilter == "거리") {
-                    viewModel.fetchAllParkingLotData(loc.latitude, loc.longitude)
+                    viewModel.refreshAroundMe(loc.latitude, loc.longitude)
                     Log.d("MainScreen", "🔄 Data fetched (no district filter)")
                 }
             } ?: Log.w("MainScreen", "Current location null")
@@ -197,7 +197,7 @@ fun MainScreen(
                     Button(onClick = {
                         if (selectedDistrict.isEmpty()) {
                             currentLocation?.let {
-                                viewModel.fetchAllParkingLotData(it.latitude, it.longitude)
+                                viewModel.refreshAroundMe(it.latitude, it.longitude)
                             }
                         } else {
                             viewModel.selectDistrict(selectedDistrict)

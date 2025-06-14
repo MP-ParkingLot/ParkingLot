@@ -13,6 +13,7 @@ import com.example.parkinglot.util.Constants
 import com.kakao.vectormap.LatLng
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 class ParkingViewModel(
     private val parkingLotRepository: ParkingLotRepository
@@ -25,215 +26,218 @@ class ParkingViewModel(
     private val _currentLocation = MutableStateFlow<Location?>(null)
     val currentLocation: StateFlow<Location?> = _currentLocation.asStateFlow()
 
-    private val _selectedFilter = MutableStateFlow("")   // "" = 필터 없음
+    /** 필터 종류 */
+    private val _selectedFilter = MutableStateFlow("")      // "", "거리", "빈 자리", "무료"
     val selectedFilter: StateFlow<String> = _selectedFilter.asStateFlow()
 
-    private val _selectedDistrict = MutableStateFlow("") // "" = 구 필터 없음
+    /** “거리” 필터용 반경(km) – 1‧3‧5‧10 중 하나 */
+    private val _distanceKm = MutableStateFlow(1)
+    val distanceKm: StateFlow<Int> = _distanceKm.asStateFlow()
+
+    /** 구 필터(드롭다운) */
+    private val _selectedDistrict = MutableStateFlow("")    // "" = 미선택
     val selectedDistrict: StateFlow<String> = _selectedDistrict.asStateFlow()
 
+    /** 지도 카메라 이동 요청 */
     private val _mapCenterMoveRequest = MutableStateFlow<LatLng?>(null)
     val mapCenterMoveRequest: StateFlow<LatLng?> = _mapCenterMoveRequest.asStateFlow()
 
+    /** 화면에 실제 표시할 주차장 리스트 */
     val filteredParkingLots: StateFlow<List<CombinedParkingLotInfo>> = _uiState
         .map { it.filteredParkingLots }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _uiState.value.filteredParkingLots)
 
-    fun updateCurrentLocation(location: Location) {
-        _currentLocation.value = location
+    /* ────────────────────────────── */
+    /* 현재 위치 갱신                  */
+    /* ────────────────────────────── */
+    fun updateCurrentLocation(loc: Location) {
+        val prev = _currentLocation.value
+        _currentLocation.value = loc
+
+        //  100 m 이상 이동 시 재조회
+        if (prev == null || loc.distanceTo(prev) > 100f) {
+            refreshAroundMe(loc.latitude, loc.longitude)
+        }
     }
 
     /* ─────────────────────────────────────────────
-       ★ ADD : 현 위치 → 구 → 데이터 전부 가져오기
+       1) 현 위치 → 구 → 전체 주차장 세트 로드
        ───────────────────────────────────────────── */
-    fun refreshAroundMe(latitude: Double, longitude: Double) {
+    public fun refreshAroundMe(lat: Double, lon: Double) {
         _uiState.update { it.copy(isLoading = true, error = null) }
+
         viewModelScope.launch {
             try {
-                // ① 좌표를 구 이름으로 변환
-                val district = parkingLotRepository.coord2district(latitude, longitude)
-                    ?: throw IllegalStateException("현재 위치의 구 정보를 가져올 수 없습니다.")
+                /* ① 좌표 → 구 이름 */
+                val district = parkingLotRepository.getDistrictByCoords(lat, lon)
+                    ?: throw IllegalStateException("구 정보를 찾지 못했습니다")
 
-                // ② 그 구의 모든 주차장 상태 + 좌표 매핑
+                /* ② 그 구의 상태+좌표 세트 */
                 val result = parkingLotRepository.getDistrictParkingLotsWithCoords(district)
-                Log.d("ParkingViewModel", "aroundMe '$district' backend=${result.details.size}, coords=${result.coordMap.size}")
 
-                val combined = buildCombinedList(result.details, result.coordMap)
-                _uiState.update { state ->
-                    state.copy(
-                        parkingLots = combined,
-                        isLoading   = false,
-                        error       = null
-                    )
-                }
+                Log.d("ParkingVM", "aroundMe: district=$district  backend=${result.details.size}  coords=${result.coordMap.size}")
 
-                // district 드롭다운에 표시 + 지도 중심 이동
                 _selectedDistrict.value = district
-                Constants.SEOUL_DISTRICT_CENTERS[district]
-                    ?.let { _mapCenterMoveRequest.value = it }
+                _mapCenterMoveRequest.value = Constants.SEOUL_DISTRICT_CENTERS[district]
 
+                /* ③ 결합 & 저장 */
+                val combined = buildCombinedList(result.details, result.coordMap)
+                _uiState.update { it.copy(parkingLots = combined, isLoading = false) }
+
+                // 거리 필터(기본 1 km) 적용
+                _selectedFilter.value = "거리"
                 applyFilter()
+
             } catch (e: Exception) {
-                Log.e("ParkingViewModel", "refreshAroundMe failed", e)
+                Log.e("ParkingVM", "refreshAroundMe error", e)
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }
 
-    /**
-     * 기존 A 방법 (반경 검색) – 거리·빈자리·무료 전용
-     */
-    fun fetchAllParkingLotData(latitude: Double, longitude: Double) {
-        _uiState.update { it.copy(isLoading = true, error = null) }
+    /* ─────────────────────────────────────────────
+       2) 구 드롭다운으로 선택된 경우
+       ───────────────────────────────────────────── */
+    fun selectDistrict(district: String) {
+        _selectedDistrict.value = district
+        _selectedFilter.value   = ""       // 거리/빈자리/무료 초기화
 
-        viewModelScope.launch {
-            try {
-                val result = parkingLotRepository.getNearByParkingLotsWithCoords(latitude, longitude)
-                Log.d("ParkingViewModel", "fallback backend=${result.details.size}, coords=${result.coordMap.size}")
-
-                val combined = buildCombinedList(result.details, result.coordMap)
-                _uiState.update {
-                    it.copy(
-                        parkingLots = combined,
-                        isLoading   = false,
-                        error       = null
-                    )
-                }
-                applyFilter()
-
-            } catch (e: Exception) {
-                Log.e("ParkingViewModel", "fetchAllParkingLotData failed", e)
-                _uiState.update { it.copy(isLoading = false, error = "주변 데이터 로드 실패: ${e.message}") }
-            }
+        if (district.isBlank() || district == "구 선택") {
+            // 다시 현 위치 기준
+            _currentLocation.value?.let { refreshAroundMe(it.latitude, it.longitude) }
+            return
         }
-    }
 
-    /* ───────────────────────────────────────────────
-       ★ NEW: 상태+좌표 → CombinedParkingLotInfo 빌더
-       ─────────────────────────────────────────────── */
-    private fun buildCombinedList(
-        details: List<ParkingLotDetail>,
-        coordMap: Map<String, Pair<Double, Double>>
-    ): List<CombinedParkingLotInfo> {
-        val list = mutableListOf<CombinedParkingLotInfo>()
-        details.forEach { lot ->
-            val coord = coordMap[lot.id] ?: return@forEach
-            val (lat, lon) = coord
-            val safeEmpty = lot.empty.coerceAtLeast(0L)
-            list.add(
-                CombinedParkingLotInfo(
-                    id               = lot.id,
-                    LocationID       = lot.id,
-                    addressName      = null,
-                    roadAddressName  = null,
-                    latitude         = lat,
-                    longitude        = lon,
-                    empty            = safeEmpty,
-                    total            = lot.total,
-                    ratio            = lot.ratio,
-                    charge           = lot.charge,
-                    region2depthName = ""
-                )
-            )
-        }
-        return list
-    }
-
-    /* ───────────────────────────────────────────────
-       ※ 이하 로직(구 필터, applyFilter 등)은 동일
-       ─────────────────────────────────────────────── */
-
-    private fun fetchParkingLotsByDistrict(district: String) {
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             try {
                 val result = parkingLotRepository.getDistrictParkingLotsWithCoords(district)
-                val combinedList = buildCombinedList(result.details, result.coordMap)
-                _uiState.update {
-                    it.copy(
-                        parkingLots = combinedList,
-                        isLoading   = false,
-                        error       = null
-                    )
-                }
+                Log.d("ParkingVM", "selectDistrict: backend=${result.details.size} coords=${result.coordMap.size}")
+
+                val combined = buildCombinedList(result.details, result.coordMap)
+                _uiState.update { it.copy(parkingLots = combined, isLoading = false) }
+
+                _mapCenterMoveRequest.value = Constants.SEOUL_DISTRICT_CENTERS[district]
                 applyFilter()
+
             } catch (e: Exception) {
-                Log.e("ParkingViewModel", "fetchParkingLotsByDistrict failed for $district", e)
-                _uiState.update { it.copy(isLoading = false, error = "구 데이터 로드 실패: ${e.message}") }
+                Log.e("ParkingVM", "selectDistrict error", e)
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }
 
+    /* ─────────────────────────────────────────────
+       3) 필터 버튼 처리
+       ───────────────────────────────────────────── */
     fun selectFilter(filter: String) {
-        if (_selectedDistrict.value.isNotEmpty()
-            && _selectedDistrict.value != "구 선택"
-            && filter != "") {
-            Log.d("ParkingViewModel", "Filter selection ignored: district filter is active.")
-            return
-        }
         _selectedFilter.value = filter
+
+        when (filter) {
+            "빈 자리" -> fetchEmptyOrFree(isEmpty = true)
+            "무료"   -> fetchEmptyOrFree(isEmpty = false)
+            // 거리·전체는 local filter
+        }
         applyFilter()
     }
 
-    fun selectDistrict(district: String) {
-        _selectedDistrict.value = district
+    /** 거리 반경 변경(1‧3‧5‧10 km) */
+    fun setDistanceKm(km: Int) {
+        _distanceKm.value = km
+        if (_selectedFilter.value == "거리") applyFilter()
+    }
 
-        if (district == "구 선택" || district.isEmpty()) {
-            _selectedFilter.value = ""
-            _currentLocation.value?.let { loc ->
-                refreshAroundMe(loc.latitude, loc.longitude)
-            } ?: run {
-                _uiState.update { it.copy(error = "현재 위치를 알 수 없어 주변 주차장을 로드할 수 없습니다.") }
+    /* ─────────────────────────────────────────────
+       4) “빈자리/무료” POST 재조회
+       ───────────────────────────────────────────── */
+    private fun fetchEmptyOrFree(isEmpty: Boolean) {
+        val loc = _currentLocation.value ?: return
+        viewModelScope.launch {
+            val list: List<ParkingLotDetail> = try {
+                if (isEmpty) {
+                    parkingLotRepository.getEmptyParkingLots(loc.latitude, loc.longitude)
+                } else {
+                    parkingLotRepository.getFreeParkingLots(loc.latitude, loc.longitude)
+                }
+            } catch (e: Exception) {
+                Log.e("ParkingVM", "empty/free fetch error", e)
+                _uiState.update { it.copy(error = e.message) }
+                return@launch
             }
-            _mapCenterMoveRequest.value = null
-            _selectedDistrict.value = ""
-        } else {
-            _selectedFilter.value = ""
-            Constants.SEOUL_DISTRICT_CENTERS[district]
-                ?.let { _mapCenterMoveRequest.value = it }
-            fetchParkingLotsByDistrict(district)
+
+            // 기존 좌표 매핑 유지
+            val coordMap = _uiState.value.parkingLots.associateBy { it.id }
+                .mapValues { it.value.latitude to it.value.longitude }
+
+            val combined = buildCombinedList(list, coordMap)
+            _uiState.update { it.copy(parkingLots = combined) }
+            applyFilter()   // 필터 다시
         }
     }
 
+    /* ─────────────────────────────────────────────
+       5) 필터 적용 로직
+       ───────────────────────────────────────────── */
     private fun applyFilter() {
-        val district = _selectedDistrict.value
         val filter   = _selectedFilter.value
         val baseList = _uiState.value.parkingLots
+        val loc      = _currentLocation.value
 
-        val result = if (district.isNotEmpty() && district != "구 선택") {
-            baseList
-        } else {
-            when (filter) {
-                "거리" -> baseList.filter { it.hasValidCoords() }
-                    .sortedBy { distToCurrentLocation(it) }
-                "빈 자리" -> baseList.filter { it.empty > 0 && it.hasValidCoords() }
-                    .sortedBy { distToCurrentLocation(it) }
-                "무료" -> baseList.filter {
-                    (it.charge == "0" || it.charge?.contains("무료") == true) && it.hasValidCoords()
-                }.sortedBy { distToCurrentLocation(it) }
-                else -> baseList
+        val result = when (filter) {
+            "거리" -> {
+                val radiusM = _distanceKm.value * 1000
+                baseList.filter { info ->
+                    loc != null && info.hasValidCoords() &&
+                            info.distanceTo(loc) <= radiusM
+                }.sortedBy { info -> loc?.let { info.distanceTo(it) } ?: Float.MAX_VALUE }
             }
+            "빈 자리" -> baseList.filter { it.empty > 0 }
+            "무료"   -> baseList.filter { it.charge == "0" || it.charge?.contains("무료") == true }
+            else      -> baseList      // "전체"
         }
 
-        Log.d("ParkingVM", "applyFilter ▶ district=$district, filter=$filter, 결과=${result.size}")
+        Log.d(
+            "ParkingVM",
+            "applyFilter ▶ filter=$filter, km=${_distanceKm.value}, 결과=${result.size}"
+        )
         _uiState.update { it.copy(filteredParkingLots = result) }
     }
 
+    /* ─────────────────────────────────────────────
+       6) 헬퍼
+       ───────────────────────────────────────────── */
     private fun CombinedParkingLotInfo.hasValidCoords() =
-        this.latitude != 0.0 && this.longitude != 0.0
+        latitude != 0.0 && longitude != 0.0
 
-    private fun distToCurrentLocation(info: CombinedParkingLotInfo): Float {
-        val loc = _currentLocation.value ?: return Float.MAX_VALUE
-        return FloatArray(1).also {
+    private fun CombinedParkingLotInfo.distanceTo(loc: Location): Float =
+        FloatArray(1).also {
             Location.distanceBetween(
                 loc.latitude, loc.longitude,
-                info.latitude, info.longitude,
+                latitude, longitude,
                 it
             )
         }[0]
-    }
 
-    fun onMapCenterMoveHandled() {
-        _mapCenterMoveRequest.value = null
-        Log.d("ParkingViewModel", "Map center move request handled.")
-    }
+    private fun buildCombinedList(
+        details: List<ParkingLotDetail>,
+        coordMap: Map<String, Pair<Double, Double>>
+    ): List<CombinedParkingLotInfo> =
+        details.mapNotNull { lot ->
+            val (lat, lon) = coordMap[lot.id] ?: return@mapNotNull null
+            CombinedParkingLotInfo(
+                id               = lot.id,
+                LocationID       = lot.id,
+                addressName      = null,
+                roadAddressName  = null,
+                latitude         = lat,
+                longitude        = lon,
+                empty            = lot.empty.coerceAtLeast(0),
+                total            = lot.total,
+                ratio            = lot.ratio,
+                charge           = lot.charge,
+                region2depthName = ""
+            )
+        }
+
+    fun onMapCenterMoveHandled() { _mapCenterMoveRequest.value = null }
 }
