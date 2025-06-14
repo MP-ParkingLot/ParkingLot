@@ -21,6 +21,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.*
 import com.kakao.vectormap.*
+import com.kakao.vectormap.camera.CameraPosition
 import com.kakao.vectormap.camera.CameraUpdateFactory
 import com.kakao.vectormap.label.Label
 import com.kakao.vectormap.label.LabelLayer
@@ -46,6 +47,7 @@ fun KakaoMapScreen(
     val kakaoMapState               = remember { mutableStateOf<KakaoMap?>(null) }
     val parkingLotInfoMap           = remember { mutableStateOf<Map<String, CombinedParkingLotInfo>>(emptyMap()) }
     var currentLocation             by remember { mutableStateOf<Location?>(null) }
+    var cameraIdle                  by remember { mutableStateOf<Boolean>(false) }
     val firstCameraMovedByLocation  = remember { mutableStateOf(false) }
 
     /* ────────── 위치 권한 및 업데이트 ────────── */
@@ -91,7 +93,16 @@ fun KakaoMapScreen(
     /* ────────── MapView & Ready 콜백 ────────── */
     val mapView = rememberMapView(context) { map ->
         kakaoMapState.value = map
-
+        map.setOnCameraMoveStartListener (object : KakaoMap.OnCameraMoveStartListener {
+            override fun onCameraMoveStart(p0: KakaoMap, p1: GestureType) {
+                cameraIdle = false
+            }
+        })
+        map.setOnCameraMoveEndListener (object : KakaoMap.OnCameraMoveEndListener {
+            override fun onCameraMoveEnd(p0: KakaoMap, p1: CameraPosition, p2: GestureType) {
+                cameraIdle = true
+            }
+        })
         map.setOnLabelClickListener(object : KakaoMap.OnLabelClickListener {
             override fun onLabelClicked(map: KakaoMap, layer: LabelLayer, label: Label): Boolean {
                 if (label.labelId == "myCurrentLocation") return true
@@ -116,7 +127,7 @@ fun KakaoMapScreen(
     }
 
     /* ────────── 마커 갱신 ────────── */
-    LaunchedEffect(parkingLots, kakaoMapState.value, currentLocation) {
+    LaunchedEffect(parkingLots, kakaoMapState.value, currentLocation, cameraIdle) {
         val map     = kakaoMapState.value ?: return@LaunchedEffect
         val manager = map.labelManager ?: return@LaunchedEffect
         val layer   = manager.getLayer() ?: return@LaunchedEffect
