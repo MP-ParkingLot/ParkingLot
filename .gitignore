@@ -5,6 +5,10 @@ build/
 # Local configuration file (sdk path, etc)
 local.properties
 
+# Secret App Keys
+local.defaults.properties
+secrets.properties
+
 # Log/OS Files
 *.log
 .DS_Store
