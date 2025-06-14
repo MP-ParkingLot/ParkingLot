@@ -17,7 +17,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         return if (token.isNullOrBlank()) null else "Bearer $token"
     }
 
-    suspend fun fetchReviews(locationId: String, currentUserId: Long?) {
+    suspend fun fetchReviews(locationId: String, currentUserId: String?) {
         val token = getAuthToken() ?: return
         try {
             val response = withContext(Dispatchers.IO) { apiService.getReviews(token, locationId) }
@@ -45,7 +45,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         }
     }
 
-    suspend fun updateReview(reviewId: Long, request: ReviewUpdateRequest, locationId: String, currentUserId: Long?) {
+    suspend fun updateReview(reviewId: Long, request: ReviewUpdateRequest, locationId: String, currentUserId: String?) {
         val token = getAuthToken() ?: return
         try {
             val response = withContext(Dispatchers.IO) { apiService.updateReview(token, reviewId, request) }
@@ -59,7 +59,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         }
     }
 
-    suspend fun deleteReview(reviewId: Long, locationId: String, currentUserId: Long?) {
+    suspend fun deleteReview(reviewId: Long, locationId: String, currentUserId: String?) {
         val token = getAuthToken() ?: return
         try {
             val response = withContext(Dispatchers.IO) { apiService.deleteReview(token, reviewId) }
@@ -73,7 +73,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         }
     }
 
-    suspend fun toggleLike(reviewId: Long, isLiked: Boolean, locationId: String, currentUserId: Long?) {
+    suspend fun toggleLike(reviewId: Long, isLiked: Boolean, locationId: String, currentUserId: String?) {
         val token = getAuthToken() ?: return
         val request = ReviewLikeRequest(isLike = !isLiked)
         try {

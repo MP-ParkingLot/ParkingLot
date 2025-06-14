@@ -14,7 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.parkinglot.ui.theme.ParkingLotTheme
+//import com.example.parkinglot.ui.theme.ParkingLotTheme
 import com.example.parkinglot.viewmodel.ParkingViewModel
 import com.example.parkinglot.viewmodel.ParkingViewModelFactory
 
@@ -39,9 +39,9 @@ class MainActivity : ComponentActivity() {
             val factory = ParkingViewModelFactory(parkingLotRepository)
             val parkingViewModel: ParkingViewModel = viewModel(factory = factory)
 
-            ParkingLotTheme {
-                MainScreen(viewModel = parkingViewModel)
-            }
+//            ParkingLotTheme {
+//                MainScreen(viewModel = parkingViewModel)
+//            }
         }
     }
     // getMetaDataValue 함수는 더 이상 필요 없으므로 제거
