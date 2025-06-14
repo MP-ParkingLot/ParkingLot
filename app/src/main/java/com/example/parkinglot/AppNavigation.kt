@@ -21,14 +21,14 @@ fun AppNavHost() {
         navController = navController,
         startDestination = "map"
     ) {
-        composable(route = "map") {
-            MapScreen(//지도 담당자가 만든 composable 함수의 이름으로 변경해야 합니다,
-                // 현재는 composable로 선언한 지도가 없고, loacationid와 연동이 되지 않아서 빨간색으로 표시됩니다
-                onNavigateToReview = { locationId ->
-                    navController.navigate("review_list/$locationId")
-                }
-            )
-        }
+//        composable(route = "map") {
+//            MapScreen(//지도 담당자가 만든 composable 함수의 이름으로 변경해야 합니다,
+//                // 현재는 composable로 선언한 지도가 없고, loacationid와 연동이 되지 않아서 빨간색으로 표시됩니다
+//                onNavigateToReview = { locationId ->
+//                    navController.navigate("review_list/$locationId")
+//                }
+//            )
+//        }
 
         composable(
             route = "review_list/{locationId}",
