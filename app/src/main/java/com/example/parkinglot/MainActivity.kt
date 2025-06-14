@@ -1,6 +1,7 @@
 // app/src/main/java/com/example/parkinglot/MainActivity.kt
 package com.example.parkinglot
-
+import LoginScreen
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +9,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.repository.ParkingLotRepository
 import com.example.parkinglot.ui.component.MainScreen
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.parkinglot.ui.theme.ParkingLotTheme
 import com.example.parkinglot.viewmodel.ParkingViewModel
 import com.example.parkinglot.viewmodel.ParkingViewModelFactory

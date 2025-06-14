@@ -69,6 +69,11 @@ dependencies {
     implementation(libs.kakao.maps) // 이 의존성만 사용합니다.
 
     // 위치 정보 및 권한 (accompanist, play-services-location)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.kakao.maps)
     implementation(libs.accompanist.permissions)
     implementation(libs.play.services.location)
     implementation(libs.kotlinx.coroutines.play.services)
