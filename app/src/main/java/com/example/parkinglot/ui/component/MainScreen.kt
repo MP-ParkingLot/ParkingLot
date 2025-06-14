@@ -2,10 +2,28 @@
 package com.example.parkinglot.ui.component
 
 import android.util.Log
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,63 +35,62 @@ import com.example.parkinglot.uistate.CombinedParkingLotInfo
 import com.example.parkinglot.viewmodel.ParkingViewModel
 
 @Composable
-fun MainScreen(viewModel: ParkingViewModel = viewModel()) {
-    // ViewModel 상태 구독
-    val uiState by viewModel.uiState.collectAsState()
+fun MainScreen(
+    viewModel: ParkingViewModel = viewModel(),
+    onNavigateToReview: (String) -> Unit = {}      // ⭐ 기본값 제공
+) {
+    /* ───── 1) 상태 구독 ───── */
+    val uiState             by viewModel.uiState.collectAsState()
     val filteredParkingLots by viewModel.filteredParkingLots.collectAsState()
-    var selectedParkingLot by remember { mutableStateOf<CombinedParkingLotInfo?>(null) }
+    var selectedParkingLot  by remember { mutableStateOf<CombinedParkingLotInfo?>(null) }
 
-    val currentLocation by viewModel.currentLocation.collectAsState()
-    val selectedFilter by viewModel.selectedFilter.collectAsState()
+    val currentLocation  by viewModel.currentLocation.collectAsState()
+    val selectedFilter   by viewModel.selectedFilter.collectAsState()
     val selectedDistrict by viewModel.selectedDistrict.collectAsState()
     val mapCenterRequest by viewModel.mapCenterMoveRequest.collectAsState()
 
-    // 행정구 필터 적용 여부에 따라 VerticalFilterButtons의 활성화 상태 결정
     val areFilterButtonsEnabled = selectedDistrict.isEmpty()
 
-    // 최초 위치 수신 시 데이터 로드
-    // ★ 주의: 구 필터가 선택되지 않았을 때만 초기 로드 및 주변 데이터 로드를 수행합니다.
-    LaunchedEffect(currentLocation, selectedDistrict) { // selectedDistrict를 dependency에 추가
-        if (selectedDistrict.isEmpty()) { // 구 필터가 없는 경우에만 주변 데이터 로드
+    /* ─────────────────────────────────────
+       2) 최초 위치 수신 → 데이터 로드
+       ───────────────────────────────────── */
+    LaunchedEffect(currentLocation, selectedDistrict) {
+        if (selectedDistrict.isEmpty()) {
             currentLocation?.let { loc ->
                 if (uiState.parkingLots.isEmpty() || selectedFilter == "거리") {
                     viewModel.fetchAllParkingLotData(loc.latitude, loc.longitude)
-                    Log.d("MainScreen", "Initial data fetch triggered by location update or '거리' filter, and no district selected.")
+                    Log.d("MainScreen", "🔄 Data fetched (no district filter)")
                 }
-            } ?: run {
-                Log.w("MainScreen", "Current location is null, cannot trigger initial data fetch when no district is selected.")
-            }
+            } ?: Log.w("MainScreen", "Current location null")
         }
     }
 
+    /* ─────────────────────────────────────
+       3) UI 레이아웃
+       ───────────────────────────────────── */
     Box(Modifier.fillMaxSize()) {
-        // 1) KakaoMapScreen
+
+        /* 3-1  지도 */
         KakaoMapScreen(
-            modifier = Modifier.fillMaxSize(),
-            parkingLots = filteredParkingLots,
-            onMarkerClick = { lot -> selectedParkingLot = lot },
-            onLocationUpdate = { loc -> viewModel.updateCurrentLocation(loc) },
-            mapCenterRequest = mapCenterRequest,
-            onMapCenterMoveHandled = viewModel::onMapCenterMoveHandled
-        ){
+            modifier               = Modifier.fillMaxSize(),
+            parkingLots            = filteredParkingLots,
+            onMarkerClick          = { lot -> selectedParkingLot = lot },
+            onLocationUpdate       = { viewModel.updateCurrentLocation(it) },
+            mapCenterRequest       = mapCenterRequest,
+            onMapCenterMoveHandled = viewModel::onMapCenterMoveHandled   // ← 끝 콤마 삭제
+        )
 
-        }
-
-        // 2) 필터 버튼
+        /* 3-2  세로 필터 버튼 */
         VerticalFilterButtons(
             selectedFilter = selectedFilter,
-            onSelectFilter = { filter ->
-                if (areFilterButtonsEnabled) { // 버튼이 활성화된 상태일 때만 필터 선택
-                    viewModel.selectFilter(filter)
-                }
-            },
-            isEnabled = areFilterButtonsEnabled, // 활성화 상태 전달
-            modifier = Modifier
+            onSelectFilter = { if (areFilterButtonsEnabled) viewModel.selectFilter(it) },
+            isEnabled      = areFilterButtonsEnabled,
+            modifier       = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 48.dp, end = 18.dp)
         )
 
-        // 3) 구 선택 드롭다운
+        /* 3-3  구(區) 드롭다운 */
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -81,16 +98,14 @@ fun MainScreen(viewModel: ParkingViewModel = viewModel()) {
         ) {
             DistrictDropdownMenu(
                 selectedDistrict = selectedDistrict,
-                onDistrictSelected = { district ->
-                    viewModel.selectDistrict(district) // 선택된 구로 데이터 로드 로직이 분기됨
-                }
+                onDistrictSelected = viewModel::selectDistrict
             )
         }
 
-        // 4) 상세 다이얼로그 (생략 - 기존과 동일)
+        /* 3-4  상세 다이얼로그 */
         selectedParkingLot?.let { lot ->
-            val displayName = lot.LocationID?.takeIf { it.isNotBlank() }
-                ?: lot.addressName?.takeIf { it.isNotBlank() }
+            val displayName = lot.LocationID.takeUnless { it.isNullOrBlank() }
+                ?: lot.addressName.takeUnless { it.isNullOrBlank() }
                 ?: "정보 없음"
 
             AlertDialog(
@@ -98,22 +113,22 @@ fun MainScreen(viewModel: ParkingViewModel = viewModel()) {
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = displayName,
+                            text  = displayName,
                             fontSize = 20.sp,
                             style = MaterialTheme.typography.titleLarge
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = when (lot.ratio?.uppercase()) {
-                                "PLENTY" -> "여유"
+                            text  = when (lot.ratio?.uppercase()) {
+                                "PLENTY"   -> "여유"
                                 "MODERATE" -> "보통"
-                                "BUSY" -> "혼잡"
-                                "FULL" -> "만차"
-                                else -> lot.ratio ?: "정보 없음"
+                                "BUSY"     -> "혼잡"
+                                "FULL"     -> "만차"
+                                else       -> lot.ratio ?: "정보 없음"
                             },
                             fontSize = 14.sp,
-                            color = when (lot.ratio?.uppercase()) {
-                                "PLENTY" -> Color(0xFF4CAF50)
+                            color    = when (lot.ratio?.uppercase()) {
+                                "PLENTY"   -> Color(0xFF4CAF50)
                                 "MODERATE" -> Color(0xFFFFC107)
                                 "BUSY", "FULL" -> Color(0xFFF44336)
                                 else -> MaterialTheme.colorScheme.onSurface
@@ -125,27 +140,22 @@ fun MainScreen(viewModel: ParkingViewModel = viewModel()) {
                 text = {
                     Column {
                         Text(
-                            text = lot.LocationID
-                                .takeUnless { it.isNullOrBlank() }
-                                ?: lot.addressName
-                                ?: "주소 정보 없음",
-                            fontSize = 14.sp,
-                            style = MaterialTheme.typography.bodyMedium
+                            text  = lot.LocationID.takeUnless { it.isNullOrBlank() }
+                                ?: lot.addressName ?: "주소 정보 없음",
+                            fontSize = 14.sp
                         )
                         Spacer(Modifier.height(2.dp))
-                        Text("요금", fontSize = 14.sp, style = MaterialTheme.typography.bodyMedium)
+                        Text("요금", fontSize = 14.sp)
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = "시간당 ${lot.charge ?: "정보없음"}원",
                             fontSize = 12.sp,
-                            style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
                             text = "실시간 남은 자리: ${lot.empty}",
-                            fontSize = 14.sp,
-                            style = MaterialTheme.typography.bodyMedium
+                            fontSize = 14.sp
                         )
                     }
                 },
@@ -156,45 +166,40 @@ fun MainScreen(viewModel: ParkingViewModel = viewModel()) {
                 },
                 dismissButton = {
                     OutlinedButton(onClick = {
-                        //navController.navigate("review_list/${lot.LocationID}")
+                        // ① LocationID → ② addressName → ③ 취소
+                        val idForReview = lot.LocationID
+                            ?.takeIf { it.isNotBlank() }
+                            ?: lot.addressName                 // 주소라도 넘긴다
+                            ?: return@OutlinedButton           // 둘 다 없으면 아무 일도 안 함
+
+                        onNavigateToReview(idForReview)        // ★ 반드시 호출
+                        selectedParkingLot = null
                     }) {
                         Text("리뷰")
                     }
                 },
-                shape = RoundedCornerShape(12.dp),
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                shape           = RoundedCornerShape(12.dp),
+                containerColor  = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
-        // 5) 로딩 & 에러 처리 (생략 - 기존과 동일)
+        /* 3-5  로딩 & 에러 UI */
         if (uiState.isLoading) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .align(Alignment.Center),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         }
-        uiState.error?.let { errMsg ->
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .align(Alignment.Center),
-                contentAlignment = Alignment.Center
-            ) {
+        uiState.error?.let { msg ->
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("오류 발생: $errMsg", color = MaterialTheme.colorScheme.error)
+                    Text("오류 발생: $msg", color = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.height(8.dp))
                     Button(onClick = {
-                        // 오류 발생 시 재시도 로직은 현재 선택된 구에 따라 달라져야 합니다.
                         if (selectedDistrict.isEmpty()) {
                             currentLocation?.let {
                                 viewModel.fetchAllParkingLotData(it.latitude, it.longitude)
-                            } ?: Log.w("MainScreen", "No current location, cannot retry initial fetch.")
+                            }
                         } else {
-                            // 현재 구 필터가 적용 중이면, 해당 구로 다시 검색
                             viewModel.selectDistrict(selectedDistrict)
                         }
                     }) {
