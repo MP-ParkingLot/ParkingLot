@@ -55,7 +55,9 @@ fun MainScreen(viewModel: ParkingViewModel = viewModel()) {
             onLocationUpdate = { loc -> viewModel.updateCurrentLocation(loc) },
             mapCenterRequest = mapCenterRequest,
             onMapCenterMoveHandled = viewModel::onMapCenterMoveHandled
-        )
+        ){
+
+        }
 
         // 2) 필터 버튼
         VerticalFilterButtons(
