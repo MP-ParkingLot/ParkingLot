@@ -20,6 +20,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,7 +42,7 @@ import com.example.parkinglot.auth.AuthViewModel
 import com.example.parkinglot.auth.AuthViewModelFactory
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(onNavigateToMap: ()-> Unit= {}) {
     var id by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -84,7 +85,11 @@ fun LoginScreen() {
                         Icon(Icons.Default.Clear, contentDescription = "Clear")
                     }
                 }
-            }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            )
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -100,7 +105,11 @@ fun LoginScreen() {
                         Icon(Icons.Default.Clear, contentDescription = "Clear")
                     }
                 }
-            }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            )
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -109,7 +118,8 @@ fun LoginScreen() {
             Button(onClick = {
                     viewModel.login(context, id, password,
                         onSuccess = {
-                            Toast.makeText(context, "로그인 성공! token: " + viewModel.prefs.getString("token", ""), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "로그인 성공!", Toast.LENGTH_SHORT).show()
+                            onNavigateToMap()
                         },
                         onError = {
                             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()

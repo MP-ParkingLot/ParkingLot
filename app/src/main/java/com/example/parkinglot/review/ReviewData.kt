@@ -1,5 +1,5 @@
 // app/src/main/java/com/example/parkinglot/viewmodel/ReviewData.kt
-package com.example.parkinglot
+package com.example.parkinglot.review
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

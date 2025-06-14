@@ -1,6 +1,8 @@
 // app/src/main/java/com/example/parkinglot/AppNavigation.kt
 package com.example.parkinglot
 
+import LoginScreen
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -11,11 +13,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.parkinglot.auth.AuthManager
 import com.example.parkinglot.repository.ParkingLotRepository
+import com.example.parkinglot.review.Review
+import com.example.parkinglot.review.ReviewRepository
+import com.example.parkinglot.review.ReviewScreen
+import com.example.parkinglot.review.ReviewViewModel
+import com.example.parkinglot.review.ReviewViewModelFactory
+import com.example.parkinglot.review.UpdateDeleteScreen
+import com.example.parkinglot.review.WriteReviewScreen
 import com.example.parkinglot.ui.component.MainScreen
 import com.example.parkinglot.viewmodel.ParkingViewModel
 import com.example.parkinglot.viewmodel.ParkingViewModelFactory
-import android.net.Uri
 
 @Composable
 fun AppNavHost() {
@@ -25,7 +34,15 @@ fun AppNavHost() {
     val reviewRepository = remember { ReviewRepository { AuthManager.accessToken } }
     val currentUser      by AuthManager.currentUser.collectAsState()
 
-    NavHost(navController, startDestination = "map") {
+    NavHost(navController, startDestination = "login") {
+        /** ───────── 로그인 화면 ───────── */
+        composable("login") {
+            LoginScreen(
+                onNavigateToMap = {
+                    navController.navigate("map")
+                }
+            )
+        }
 
         /** ───────── 지도 화면 ───────── */
         composable("map") {

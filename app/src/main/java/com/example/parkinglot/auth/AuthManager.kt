@@ -1,5 +1,5 @@
 // app/src/main/java/com/example/parkinglot/viewmodel/AuthManager.kt
-package com.example.parkinglot
+package com.example.parkinglot.auth
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +18,8 @@ object AuthManager {
      * 이 onLoginSuccess 함수를 호출해주세요.
      */
     fun onLoginSuccess(token: String, userInfo: UserInfo) {
-        this.accessToken = token
-        this._currentUser.value = userInfo
+        accessToken = token
+        _currentUser.value = userInfo
     }
 
     /**
@@ -28,8 +28,8 @@ object AuthManager {
      * 깨끗하게 초기화해주세요.
      */
     fun logout() {
-        this.accessToken = null
-        this._currentUser.value = null
+        accessToken = null
+        _currentUser.value = null
     }
 }
 
