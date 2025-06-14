@@ -42,9 +42,6 @@ import com.kakao.vectormap.label.LabelLayer
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles // 여전히 필요하지만 사용 방식이 달라집니다.
-import com.kakao.vectormap.label.LabelOptions
-import com.kakao.vectormap.label.LabelStyle
-import com.kakao.vectormap.label.LabelStyles
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -54,7 +51,8 @@ fun KakaoMapScreen(
     onMarkerClick: (CombinedParkingLotInfo) -> Unit,
     onLocationUpdate: (Location) -> Unit,
     mapCenterRequest: LatLng?,
-    onMapCenterMoveHandled: () -> Unit
+    onMapCenterMoveHandled: () -> Unit,
+    onNavigateToReview: (String) -> Unit
 ) {
     val context = LocalContext.current
     val currentOnMarkerClick by rememberUpdatedState(onMarkerClick)
@@ -84,6 +82,14 @@ fun KakaoMapScreen(
     val hasCoarseLocation = ContextCompat.checkSelfPermission(
         context, Manifest.permission.ACCESS_COARSE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
+
+
+    val myLocationStyle = LabelStyle.from(R.drawable.my_location_64).setZoomLevel(0)
+    val defaultParkingStyle = LabelStyle.from(R.drawable.marker_gray).setZoomLevel(0)
+    val plentyParkingStyle = LabelStyle.from(R.drawable.marker_green).setZoomLevel(0)
+    val moderateParkingStyle = LabelStyle.from(R.drawable.marker_yellow).setZoomLevel(0)
+    val busyParkingStyle = LabelStyle.from(R.drawable.marker_red).setZoomLevel(0)
+    val fullParkingStyle = LabelStyle.from(R.drawable.marker_red).setZoomLevel(0)
 
     DisposableEffect(permissionsGranted) {
         if (!permissionsGranted) {
@@ -163,12 +169,6 @@ fun KakaoMapScreen(
 
         // ★★★★ 이 부분을 아래와 같이 수정합니다. LabelManager.addLabelStyles()를 호출하지 않습니다. ★★★★
         // 필요한 LabelStyle 객체들을 직접 생성하여 변수에 저장합니다.
-        val myLocationStyle = LabelStyle.from(R.drawable.my_location_64).setZoomLevel(0)
-        val defaultParkingStyle = LabelStyle.from(R.drawable.marker_gray).setZoomLevel(0)
-        val plentyParkingStyle = LabelStyle.from(R.drawable.marker_green).setZoomLevel(0)
-        val moderateParkingStyle = LabelStyle.from(R.drawable.marker_yellow).setZoomLevel(0)
-        val busyParkingStyle = LabelStyle.from(R.drawable.marker_red).setZoomLevel(0)
-        val fullParkingStyle = LabelStyle.from(R.drawable.marker_red).setZoomLevel(0)
 
         // 1) 내 위치 마커 (현재 위치가 있을 경우)
         currentLocation?.let { loc ->
@@ -178,7 +178,7 @@ fun KakaoMapScreen(
                 .setStyles(LabelStyles.from(myLocationStyle))
             layer.addLabel(myOpts)
             Log.d("KakaoMapScreen", "내 위치 마커 업데이트: ${loc.latitude}, ${loc.longitude}")
-        // 지도 준비됐을 때 최초 위치 설정
+            // 지도 준비됐을 때 최초 위치 설정
 //        locationState.value?.let { location ->
 //            kakaoMap.moveCamera(
 //                CameraUpdateFactory.newCenterPosition(
@@ -202,15 +202,23 @@ fun KakaoMapScreen(
 //                Log.d("labelManager", "Null")
 //            }
 //        }
-    }
+        }
 
-    // 위치 변경 시 레이블 이동
-    LaunchedEffect(locationState.value) {
-        val location = locationState.value
+
+        // 위치 변경 시 레이블 이동
+
+    }
+    AndroidView(
+        modifier = modifier.fillMaxSize(),
+        factory = { mapView }
+    )
+    LaunchedEffect(currentLocation) {
+        val location = currentLocation
         val map = kakaoMapState.value
+        val layer = map?.labelManager?.getLayer()
+
         if (permissionsGranted && location != null && map != null) {
-            if(initialCameraMoved.value == false)
-            {
+            if (initialCameraMoved.value == false) {
                 map.moveCamera(
                     CameraUpdateFactory.newCenterPosition(
                         LatLng.from(location.latitude, location.longitude)
@@ -220,8 +228,7 @@ fun KakaoMapScreen(
                 Log.d("GPS", "위치 변경에 따른 지도 이동: ${location.latitude}, ${location.longitude}")
             }
 
-            if(map.labelManager != null) {
-                val layer = map.labelManager?.getLayer()
+            if (map.labelManager != null) {
                 layer?.removeAll()
                 val styles = map.labelManager?.addLabelStyles(
                     LabelStyles.from(LabelStyle.from(R.drawable.my_location_64))
@@ -229,7 +236,7 @@ fun KakaoMapScreen(
                 val options = LabelOptions.from(
                     LatLng.from(location.latitude, location.longitude)
                 ).setStyles(styles)
-                if(layer != null) {
+                if (layer != null) {
                     layer.addLabel(options)
                     Log.d("layer", "not null")
                 } else {
@@ -239,7 +246,6 @@ fun KakaoMapScreen(
                 Log.d("labelManager", "Null")
             }
         }
-
         // 2) 주차장 마커
         val newMap = mutableMapOf<String, CombinedParkingLotInfo>()
         parkingLots.forEach { lot ->
@@ -257,19 +263,18 @@ fun KakaoMapScreen(
                     // 선택된 단일 LabelStyle 객체로 LabelStyles를 생성하여 적용합니다.
                     .setStyles(LabelStyles.from(chosenStyle))
                 newMap["parking_${lot.id}"] = lot
-                layer.addLabel(opts)
+                layer?.addLabel(opts)
             } else {
                 // Log.w("KakaoMapScreen", "주차장 ${lot.placeName} (${lot.id})의 좌표가 유효하지 않습니다: ${lot.latitude}, ${lot.longitude}") // placeName -> LocationID 변경
-                Log.w("KakaoMapScreen", "주차장 ${lot.LocationID} (${lot.id})의 좌표가 유효하지 않습니다: ${lot.latitude}, ${lot.longitude}") // placeName -> LocationID 변경
+                Log.w(
+                    "KakaoMapScreen",
+                    "주차장 ${lot.LocationID} (${lot.id})의 좌표가 유효하지 않습니다: ${lot.latitude}, ${lot.longitude}"
+                ) // placeName -> LocationID 변경
             }
         }
         parkingLotInfoMap.value = newMap
-    }
 
-    AndroidView(
-        modifier = modifier.fillMaxSize(),
-        factory = { mapView }
-    )
+    }
 }
 
 @Composable
