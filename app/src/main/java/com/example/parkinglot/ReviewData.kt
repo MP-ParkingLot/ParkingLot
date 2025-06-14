@@ -14,7 +14,7 @@ data class Review(
     var likes: Int,
     val createdAt: String,
     val categories: @RawValue Map<String, Boolean>,
-    val userId: Long,
+    val userId: String,
     val nickname: String,
     val isMine: Boolean = false,
     var isLikedByMe: Boolean = false
