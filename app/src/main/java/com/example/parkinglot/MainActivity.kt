@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.example.parkinglot.ui.theme.ParkinglotTheme
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.repository.ParkingLotRepository
@@ -20,6 +21,13 @@ import com.example.parkinglot.viewmodel.ParkingViewModelFactory
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+//        setContent {
+//            ParkinglotTheme {
+//                AppNavHost()
+//            }
+//        }
+//    }
+//}
         // KakaoMapSdk.init 호출은 MyApplication에서 이미 처리되므로 여기서는 제거
         enableEdgeToEdge()
         setContent {

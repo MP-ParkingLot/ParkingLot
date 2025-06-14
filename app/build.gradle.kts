@@ -4,6 +4,7 @@ import org.gradle.kotlin.dsl.implementation // 이 import는 그대로 유지합
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-parcelize")
     alias(libs.plugins.kotlin.compose) // Compose 플러그인
     alias(libs.plugins.secrets.gradle.plugin) // Secrets Gradle Plugin
 }
@@ -63,7 +64,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation(libs.androidx.lifecycle.viewmodel.compose) // ViewModel Compose 의존성
+    // implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
 
     // Kakao Map SDK (Kakao Vector Map SDK)
     implementation(libs.kakao.maps) // 이 의존성만 사용합니다.
@@ -81,6 +84,8 @@ dependencies {
     // Retrofit2 (버전 2.9.0 유지)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0") // 중복 제거 후 하나만 유지
+    
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
 
     // XML 응답을 처리하기 위한 SimpleXML (버전 유지)
     // OkHttp 버전을 logging-interceptor와 동일하게 맞춥니다.
@@ -90,6 +95,8 @@ dependencies {
 
     // OkHttp 로깅 인터셉터 (버전 유지)
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    // implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
 
     // libDaumMapAndroid.jar 참조 제거: Kakao Vector Map SDK와 충돌합니다.
     // implementation(files("libs/libDaumMapAndroid.jar")) // 이 라인은 반드시 제거해야 합니다!
