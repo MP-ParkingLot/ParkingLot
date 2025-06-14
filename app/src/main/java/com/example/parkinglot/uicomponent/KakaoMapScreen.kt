@@ -38,7 +38,9 @@ import com.kakao.vectormap.label.LabelStyles
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun KakaoMapScreen(modifier: Modifier = Modifier) {
+fun KakaoMapScreen(
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val permissionsState = rememberMultiplePermissionsState(
         listOf(
