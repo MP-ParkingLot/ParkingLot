@@ -43,7 +43,7 @@ import com.example.parkinglot.auth.AuthViewModelFactory
 import com.example.parkinglot.auth.UserInfo
 
 @Composable
-fun LoginScreen(onNavigateToMap: ()-> Unit= {}) {
+fun LoginScreen(onNavigateToMap: ()->Unit={}, onNavigateToSignup: ()->Unit={}) {
     var id by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -142,14 +142,7 @@ fun LoginScreen(onNavigateToMap: ()-> Unit= {}) {
             Spacer(modifier = Modifier.width(16.dp))
 
             Button(onClick = {
-                    viewModel.signup(id, password,
-                        onSuccess = {
-                            Toast.makeText(context, "회원가입 성공! 로그인해주세요.", Toast.LENGTH_SHORT).show()
-                        },
-                        onError = {
-                            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                        }
-                    )
+                    onNavigateToSignup()
                 },
                 colors = ButtonColors(
                     containerColor = Color(0xFE, 0xF7, 0xFF),
