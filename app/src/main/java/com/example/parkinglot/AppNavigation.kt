@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.parkinglot.auth.AuthManager
 import com.example.parkinglot.auth.AuthManager.currentUser
+import com.example.parkinglot.auth.SignUpScreen
 import com.example.parkinglot.repository.ParkingLotRepository
 import com.example.parkinglot.review.Review
 import com.example.parkinglot.review.ReviewScreen
@@ -46,7 +47,16 @@ fun AppNavHost() {
             LoginScreen(
                 onNavigateToMap = {
                     navController.navigate("map")
+                },
+                onNavigateToSignup = {
+                    navController.navigate("signup")
                 }
+            )
+        }
+
+        composable("signup") {
+            SignUpScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
