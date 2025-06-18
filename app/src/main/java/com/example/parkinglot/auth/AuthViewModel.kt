@@ -8,9 +8,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.parkinglot.auth.AuthClientProvider
-import com.example.parkinglot.auth.AuthRequest
-import com.example.parkinglot.auth.AuthResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -64,7 +61,7 @@ class AuthViewModel(val prefs: SharedPreferences) : ViewModel() {
         api.signup(request).enqueue(object : Callback<AuthResponse> {
             override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
                 when (response.code()) {
-                    201 -> onSuccess()
+                    200 -> onSuccess()
                     409 -> onError("ID is used")
                     else -> onError("회원가입 실패: ${response.code()} ${response.message()}")
                 }

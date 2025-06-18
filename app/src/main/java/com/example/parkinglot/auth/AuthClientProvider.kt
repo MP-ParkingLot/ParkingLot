@@ -2,6 +2,7 @@
 package com.example.parkinglot.auth
 
 import android.util.Log
+import com.example.parkinglot.ApiService
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
@@ -22,7 +23,7 @@ object AuthClientProvider {
     private val cookieJar = object : CookieJar {
         override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
             cookieStore[url.host] = cookies
-            cookies.firstOrNull { it.name == "access_token" }?.value?.let { token ->
+            cookies.firstOrNull { it.name == "accessToken" }?.value?.let { token ->
                 Log.d("AuthClientProvider", "토큰 감지: $token")
                 onTokenReceived?.invoke(token)
             }
@@ -44,4 +45,5 @@ object AuthClientProvider {
         .build()
 
     val authService: AuthService = retrofit.create(AuthService::class.java)
+    val apiService: ApiService = retrofit.create(ApiService::class.java)
 }

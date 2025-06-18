@@ -1,7 +1,8 @@
 // app/src/main/java/com/example/parkinglot/viewmodel/ReviewRepository.kt
 package com.example.parkinglot.review
 
-import com.example.parkinglot.RetrofitClient
+import com.example.parkinglot.auth.AuthClientProvider
+import com.example.parkinglot.auth.AuthManager
 import com.example.parkinglot.auth.UserInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -9,15 +10,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
-class ReviewRepository(private val authTokenProvider: () -> String?) {
+class ReviewRepository() {
 
-    private val apiService = RetrofitClient.api
+    private val apiService = AuthClientProvider.apiService
     private val _reviews = MutableStateFlow<List<Review>>(emptyList())
     fun getReviewStream(): Flow<List<Review>> = _reviews.asStateFlow()
 
     private fun getAuthToken(): String? {
-        val token = authTokenProvider()
-        return if (token.isNullOrBlank()) null else "Bearer $token"
+        return AuthManager.accessToken?.let { "Bearer $it" }
     }
 
     suspend fun fetchReviews(locationId: String, currentUserId: String?) {

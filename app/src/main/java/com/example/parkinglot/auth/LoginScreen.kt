@@ -141,7 +141,7 @@ fun LoginScreen(onNavigateToMap: ()-> Unit= {}) {
             Button(onClick = {
                     viewModel.signup(id, password,
                         onSuccess = {
-                            Toast.makeText(context, "회원가입 성공!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "회원가입 성공! 로그인해주세요.", Toast.LENGTH_SHORT).show()
                         },
                         onError = {
                             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()

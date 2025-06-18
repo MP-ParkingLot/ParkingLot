@@ -34,4 +34,4 @@ object AuthManager {
 }
 
 // user 정보에 닉네임은 없어 지웠습니다
-data class UserInfo(val userId: String)
+data class UserInfo(val userId: String, val nickname: String)
