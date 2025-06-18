@@ -1,5 +1,5 @@
 // app/src/main/java/com/example/parkinglot/viewmodel/ReviewFormScreens.kt
-package com.example.parkinglot
+package com.example.parkinglot.review
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

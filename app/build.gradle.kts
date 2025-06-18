@@ -1,5 +1,4 @@
 // app/build.gradle.kts
-import org.gradle.kotlin.dsl.implementation // 이 import는 그대로 유지합니다.
 
 plugins {
     alias(libs.plugins.android.application)
@@ -15,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.parkinglot"
-        minSdk = 34 // Kakao Vector Map SDK는 minSdk 24 이상을 권장합니다.
+        minSdk = 31 // Kakao Vector Map SDK는 minSdk 24 이상을 권장합니다.
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
