@@ -57,6 +57,11 @@ dependencies {
     implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
+
+    // libDaumMapAndroid.jar 참조 제거: Kakao Vector Map SDK와 충돌합니다.
+    // implementation(files("libs/libDaumMapAndroid.jar")) // 이 라인은 반드시 제거해야 합니다!
+
+    // 테스트 관련 의존성
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
