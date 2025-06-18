@@ -1,27 +1,27 @@
 // app/src/main/java/com/example/parkinglot/viewmodel/ReviewRepository.kt
 package com.example.parkinglot.review
 
-import com.example.parkinglot.auth.AuthClientProvider
-import com.example.parkinglot.auth.UserInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
-class ReviewRepository() {
+class ReviewRepository(private val authTokenProvider: () -> String?) {
 
-    private val apiService = AuthClientProvider.apiService
+    private val apiService = RetrofitClient.api
     private val _reviews = MutableStateFlow<List<Review>>(emptyList())
     fun getReviewStream(): Flow<List<Review>> = _reviews.asStateFlow()
 
-//    private fun getAuthToken(): String? {
-//        return AuthManager.accessToken?.let { "Bearer $it" }
-//    }
+    // 로그인 상태 확인을 위해 authTokenProvider를 계속 사용합니다.
+    private fun isLoggedIn(): Boolean {
+        return !authTokenProvider().isNullOrBlank()
+    }
 
-    suspend fun fetchReviews(locationId: String, currentUserId: String?) {
-//        val token = getAuthToken() ?: return
+    suspend fun fetchReviews(locationId: String, currentUserId: Long?) {
+        if (!isLoggedIn()) return
         try {
+            // apiService 호출 시 token 파라미터 제거
             val response = withContext(Dispatchers.IO) { apiService.getReviews(locationId) }
             if (response.isSuccessful) {
                 _reviews.value = response.body()?.map { it.copy(isMine = it.userId == currentUserId) } ?: emptyList()
@@ -34,8 +34,9 @@ class ReviewRepository() {
     }
 
     suspend fun addReview(locationId: String, request: ReviewUpdateRequest, author: UserInfo) {
-//        val token = getAuthToken() ?: return
+        if (!isLoggedIn()) return
         try {
+            // apiService 호출 시 token 파라미터 제거
             val response = withContext(Dispatchers.IO) { apiService.addReview(locationId, request) }
             if (response.isSuccessful) {
                 fetchReviews(locationId, author.userId)
@@ -47,9 +48,10 @@ class ReviewRepository() {
         }
     }
 
-    suspend fun updateReview(reviewId: Long, request: ReviewUpdateRequest, locationId: String, currentUserId: String?) {
-//        val token = getAuthToken() ?: return
+    suspend fun updateReview(reviewId: Long, request: ReviewUpdateRequest, locationId: String, currentUserId: Long?) {
+        if (!isLoggedIn()) return
         try {
+            // apiService 호출 시 token 파라미터 제거
             val response = withContext(Dispatchers.IO) { apiService.updateReview(reviewId, request) }
             if (response.isSuccessful) {
                 fetchReviews(locationId, currentUserId)
@@ -61,9 +63,10 @@ class ReviewRepository() {
         }
     }
 
-    suspend fun deleteReview(reviewId: Long, locationId: String, currentUserId: String?) {
-//        val token = getAuthToken() ?: return
+    suspend fun deleteReview(reviewId: Long, locationId: String, currentUserId: Long?) {
+        if (!isLoggedIn()) return
         try {
+            // apiService 호출 시 token 파라미터 제거
             val response = withContext(Dispatchers.IO) { apiService.deleteReview(reviewId) }
             if (response.isSuccessful) {
                 fetchReviews(locationId, currentUserId)
@@ -75,10 +78,11 @@ class ReviewRepository() {
         }
     }
 
-    suspend fun toggleLike(reviewId: Long, isLiked: Boolean, locationId: String, currentUserId: String?) {
-//        val token = getAuthToken() ?: return
+    suspend fun toggleLike(reviewId: Long, isLiked: Boolean, locationId: String, currentUserId: Long?) {
+        if (!isLoggedIn()) return
         val request = ReviewLikeRequest(isLike = !isLiked)
         try {
+            // apiService 호출 시 token 파라미터 제거
             val response = withContext(Dispatchers.IO) { apiService.toggleLike(reviewId, request) }
             if (response.isSuccessful) {
                 fetchReviews(locationId, currentUserId)

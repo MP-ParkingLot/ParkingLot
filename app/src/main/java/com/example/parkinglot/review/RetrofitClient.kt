@@ -4,10 +4,13 @@ package com.example.parkinglot.review
 import com.example.parkinglot.ApiService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import okhttp3.CookieJar
+import okhttp3.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.net.CookieManager
 
 object RetrofitClient {
     private const val BASE_URL = "http://52.78.160.90/"
@@ -16,8 +19,13 @@ object RetrofitClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+    // 서버와 통신 시 쿠키를 자동으로 관리할 CookieJar를 생성합니다.
+    private val cookieJar: CookieJar = JavaNetCookieJar(CookieManager())
+
+    // OkHttpClient를 빌드할 때 cookieJar를 설정합니다.
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
+        .cookieJar(cookieJar)
         .build()
 
     private val moshi = Moshi.Builder()
