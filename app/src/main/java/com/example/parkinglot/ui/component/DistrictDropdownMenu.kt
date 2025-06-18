@@ -1,4 +1,5 @@
-// app/src/main/java/com/example/parkinglot/ui/component/DistrictDropdownMenu.kt
+//app/src/main/java/com/example/parkinglot/ui/component/DistrictDropdownMenu.kt
+
 package com.example.parkinglot.ui.component
 
 import androidx.compose.foundation.layout.Box

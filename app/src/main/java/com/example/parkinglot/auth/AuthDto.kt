@@ -1,4 +1,5 @@
 //app/src/main/java/com/example/parkinglot/auth/AuthDto.kt
+
 package com.example.parkinglot.auth
 
 import com.google.gson.annotations.SerializedName

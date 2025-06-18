@@ -1,4 +1,5 @@
 //app/src/main/java/com/example/parkinglot/util/Constants.kt
+
 package com.example.parkinglot.util
 
 import com.kakao.vectormap.LatLng
