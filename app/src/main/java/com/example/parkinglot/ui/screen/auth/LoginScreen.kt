@@ -37,11 +37,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.R
-import com.example.parkinglot.data.repository.auth.AuthManager
-import com.example.parkinglot.data.repository.auth.UserInfo
-import com.example.parkinglot.viewmodel.auth.AuthViewModel
-import com.example.parkinglot.viewmodel.auth.AuthViewModelFactory
-
+import com.example.parkinglot.auth.AuthManager
+import com.example.parkinglot.auth.AuthViewModel
+import com.example.parkinglot.auth.AuthViewModelFactory
+import com.example.parkinglot.auth.UserInfo
 
 @Composable
 fun LoginScreen(onNavigateToMap: ()->Unit={}, onNavigateToSignup: ()->Unit={}) {
