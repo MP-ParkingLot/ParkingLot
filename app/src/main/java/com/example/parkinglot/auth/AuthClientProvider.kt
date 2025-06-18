@@ -7,6 +7,7 @@ import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -24,18 +25,25 @@ object AuthClientProvider {
         override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
             cookieStore[url.host] = cookies
             cookies.firstOrNull { it.name == "accessToken" }?.value?.let { token ->
-                Log.d("AuthClientProvider", "토큰 감지: $token")
+                Log.d("AuthClientProvider", "response: $token")
                 onTokenReceived?.invoke(token)
             }
         }
 
         override fun loadForRequest(url: HttpUrl): List<Cookie> {
-            return cookieStore[url.host].orEmpty()
+            val cookies = cookieStore[url.host].orEmpty()
+            Log.d("AuthClientProvider", "📤 요청 URL: $url")
+            return cookies
         }
+    }
+
+    val logging = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY
     }
 
     private val client: OkHttpClient = OkHttpClient.Builder()
         .cookieJar(cookieJar)
+        .addInterceptor(logging)
         .build()
 
     private val retrofit: Retrofit = Retrofit.Builder()

@@ -61,7 +61,7 @@ class AuthViewModel(val prefs: SharedPreferences) : ViewModel() {
         api.signup(request).enqueue(object : Callback<AuthResponse> {
             override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
                 when (response.code()) {
-                    200 -> onSuccess()
+                    201 -> onSuccess()
                     409 -> onError("ID is used")
                     else -> onError("회원가입 실패: ${response.code()} ${response.message()}")
                 }
