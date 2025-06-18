@@ -6,7 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.parkinglot.ui.navigation.AppNavHost
+import com.example.parkinglot.AppNavHost
 import com.example.parkinglot.ui.theme.ParkinglotTheme
 
 class MainActivity : ComponentActivity() {
