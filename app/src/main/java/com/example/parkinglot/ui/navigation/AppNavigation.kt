@@ -1,4 +1,5 @@
-// app/src/main/java/com/example/parkinglot/AppNavigation.kt
+// app/src/main/java/com/example/parkinglot/ui/navigation/AppNavigation.kt
+
 package com.example.parkinglot
 
 import LoginScreen

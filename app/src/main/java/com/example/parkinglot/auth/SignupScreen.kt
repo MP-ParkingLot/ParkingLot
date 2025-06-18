@@ -1,3 +1,5 @@
+//app/src/main/java/com/example/parkinglot/auth/SignupScreen.kt
+
 package com.example.parkinglot.auth
 
 import android.content.Context
@@ -39,6 +41,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.R
+import com.example.parkinglot.viewmodel.auth.AuthViewModel
+import com.example.parkinglot.viewmodel.auth.AuthViewModelFactory
 
 @Composable
 fun SignUpScreen(onNavigateBack: ()->Unit = {}) {

@@ -27,7 +27,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
     suspend fun fetchReviews(locationId: String, currentUserId: String?) {
         val token = getAuthToken() ?: return
         try {
-            val response = withContext(Dispatchers.IO) { apiService.getReviews(token, locationId) }
+            val response = withContext(Dispatchers.IO) { apiService.getReviews(locationId) }
             if (response.isSuccessful) {
                 _reviews.value = response.body()?.map { it.copy(isMine = it.userId == currentUserId) } ?: emptyList()
             } else {
@@ -42,7 +42,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         val token = getAuthToken() ?: return
         try {
             val response =
-                withContext(Dispatchers.IO) { apiService.addReview(token, locationId, request) }
+                withContext(Dispatchers.IO) { apiService.addReview(locationId, request) }
             if (response.isSuccessful) {
                 fetchReviews(locationId, author.userId)
             } else {
@@ -57,7 +57,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         val token = getAuthToken() ?: return
         try {
             val response =
-                withContext(Dispatchers.IO) { apiService.updateReview(token, reviewId, request) }
+                withContext(Dispatchers.IO) { apiService.updateReview(reviewId, request) }
             if (response.isSuccessful) {
                 fetchReviews(locationId, currentUserId)
             } else {
@@ -71,7 +71,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
     suspend fun deleteReview(reviewId: Long, locationId: String, currentUserId: String?) {
         val token = getAuthToken() ?: return
         try {
-            val response = withContext(Dispatchers.IO) { apiService.deleteReview(token, reviewId) }
+            val response = withContext(Dispatchers.IO) { apiService.deleteReview(reviewId) }
             if (response.isSuccessful) {
                 fetchReviews(locationId, currentUserId)
             } else {
@@ -87,7 +87,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         val request = ReviewLikeRequest(isLike = !isLiked)
         try {
             val response =
-                withContext(Dispatchers.IO) { apiService.toggleLike(token, reviewId, request) }
+                withContext(Dispatchers.IO) { apiService.toggleLike(reviewId, request) }
             if (response.isSuccessful) {
                 fetchReviews(locationId, currentUserId)
             } else {

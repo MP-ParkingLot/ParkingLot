@@ -1,15 +1,8 @@
-<<<<<<<< Updated upstream:app/src/main/java/com/example/parkinglot/review/RetrofitClient.kt
-// app/src/main/java/com/example/parkinglot/viewmodel/RetrofitClient.kt
-package com.example.parkinglot.review
-
-import com.example.parkinglot.ApiService
-========
 //app/src/main/java/com/example/parkinglot/dto/network/core/RetrofitClient.kt
 
 package com.example.parkinglot.data.network.core
 
 import com.example.parkinglot.data.network.ApiService
->>>>>>>> Stashed changes:app/src/main/java/com/example/parkinglot/data/network/core/RetrofitClient.kt
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.CookieJar

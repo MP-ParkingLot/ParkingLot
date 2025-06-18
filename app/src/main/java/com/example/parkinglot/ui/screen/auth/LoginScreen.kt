@@ -1,4 +1,5 @@
-//app/src/main/java/com/example/parkinglot/auth/LoginScreen.kt
+//app/src/main/java/com/example/parkinglot/ui/screen/auth/LoginScreen.kt
+
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
