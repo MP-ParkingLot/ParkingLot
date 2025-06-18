@@ -1,4 +1,5 @@
-package com.example.parkinglot
+// app/src/main/java/com/example/parkinglot/viewmodel/ReviewData.kt
+package com.example.parkinglot.review
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
@@ -13,7 +14,7 @@ data class Review(
     var likes: Int,
     val createdAt: String,
     val categories: @RawValue Map<String, Boolean>,
-    val userId: Long,
+    val userId: String,
     val nickname: String,
     val isMine: Boolean = false,
     var isLikedByMe: Boolean = false

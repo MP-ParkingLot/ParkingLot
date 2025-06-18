@@ -1,7 +1,9 @@
-package com.example.parkinglot
+// app/src/main/java/com/example/parkinglot/viewmodel/ReviewViewModelFactory.kt
+package com.example.parkinglot.review
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.parkinglot.auth.UserInfo
 
 class ReviewViewModelFactory(
     private val repository: ReviewRepository,

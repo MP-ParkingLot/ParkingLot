@@ -1,4 +1,5 @@
-package com.example.parkinglot
+// app/src/main/java/com/example/parkinglot/viewmodel/ReviewScreen.kt
+package com.example.parkinglot.review
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

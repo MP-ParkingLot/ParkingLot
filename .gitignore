@@ -8,6 +8,8 @@ local.properties
 # Secret App Keys
 local.defaults.properties
 secrets.properties
+secret.properties
+/*.properties
 
 # Log/OS Files
 *.log
@@ -37,4 +39,3 @@ output.json
 /captures
 .externalNativeBuild
 .cxx
-local.properties

@@ -3,7 +3,7 @@ package com.example.parkinglot.uistate
 
 data class CombinedParkingLotInfo(
     val id: String,
-    val LocationID: String?, // 주차장 고유 식별자 (리뷰 시스템 연동용)
+    val LocationID: String? = id, // 주차장 고유 식별자 (리뷰 시스템 연동용)
     val addressName: String?, // ★String?
     val roadAddressName: String?, // ★수정: String -> String? (null 가능성)
     val latitude: Double,

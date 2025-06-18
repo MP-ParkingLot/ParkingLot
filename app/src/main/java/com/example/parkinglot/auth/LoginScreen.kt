@@ -1,4 +1,4 @@
-
+//app/src/main/java/com/example/parkinglot/auth/LoginScreen.kt
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -20,6 +20,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,15 +34,16 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.R
+import com.example.parkinglot.auth.AuthManager
 import com.example.parkinglot.auth.AuthViewModel
 import com.example.parkinglot.auth.AuthViewModelFactory
+import com.example.parkinglot.auth.UserInfo
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(onNavigateToMap: ()-> Unit= {}) {
     var id by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -84,7 +86,11 @@ fun LoginScreen() {
                         Icon(Icons.Default.Clear, contentDescription = "Clear")
                     }
                 }
-            }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            )
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -100,7 +106,11 @@ fun LoginScreen() {
                         Icon(Icons.Default.Clear, contentDescription = "Clear")
                     }
                 }
-            }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            )
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -109,7 +119,10 @@ fun LoginScreen() {
             Button(onClick = {
                     viewModel.login(context, id, password,
                         onSuccess = {
-                            Toast.makeText(context, "로그인 성공! token: " + viewModel.prefs.getString("token", ""), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "로그인 성공!", Toast.LENGTH_SHORT).show()
+                            val userInfo = UserInfo(id)
+                            AuthManager.onLoginSuccess(userInfo)
+                            onNavigateToMap()
                         },
                         onError = {
                             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -131,7 +144,7 @@ fun LoginScreen() {
             Button(onClick = {
                     viewModel.signup(id, password,
                         onSuccess = {
-                            Toast.makeText(context, "회원가입 성공!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "회원가입 성공! 로그인해주세요.", Toast.LENGTH_SHORT).show()
                         },
                         onError = {
                             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -149,10 +162,4 @@ fun LoginScreen() {
             }
         }
     }
-}
-
-@Preview
-@Composable
-private fun LoginScreenPreview() {
-    LoginScreen()
 }

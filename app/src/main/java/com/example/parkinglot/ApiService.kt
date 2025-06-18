@@ -1,5 +1,9 @@
+// app/src/main/java/com/example/parkinglot/viewmodel/ApiService.kt
 package com.example.parkinglot
 
+import com.example.parkinglot.review.Review
+import com.example.parkinglot.review.ReviewLikeRequest
+import com.example.parkinglot.review.ReviewUpdateRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
