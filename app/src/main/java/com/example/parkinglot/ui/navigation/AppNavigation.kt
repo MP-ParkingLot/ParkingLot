@@ -13,19 +13,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.parkinglot.auth.AuthManager
-import com.example.parkinglot.auth.AuthManager.currentUser
 import com.example.parkinglot.auth.SignUpScreen
-import com.example.parkinglot.repository.ParkingLotRepository
+import com.example.parkinglot.data.repository.auth.AuthManager
+import com.example.parkinglot.data.repository.auth.AuthManager.currentUser
+import com.example.parkinglot.data.repository.parking.ParkingLotRepository
+import com.example.parkinglot.data.repository.review.ReviewRepository
 import com.example.parkinglot.review.Review
-import com.example.parkinglot.review.ReviewScreen
-import com.example.parkinglot.review.ReviewViewModel
-import com.example.parkinglot.review.ReviewViewModelFactory
 import com.example.parkinglot.review.UpdateDeleteScreen
 import com.example.parkinglot.review.WriteReviewScreen
-import com.example.parkinglot.ui.component.MainScreen
-import com.example.parkinglot.viewmodel.ParkingViewModel
-import com.example.parkinglot.viewmodel.ParkingViewModelFactory
+import com.example.parkinglot.ui.screen.main.MainScreen
+import com.example.parkinglot.ui.screen.review.ReviewScreen
+import com.example.parkinglot.viewmodel.factory.ParkingViewModelFactory
+import com.example.parkinglot.viewmodel.factory.ReviewViewModelFactory
+import com.example.parkinglot.viewmodel.parking.ParkingViewModel
+import com.example.parkinglot.viewmodel.review.ReviewViewModel
 
 @Composable
 fun AppNavHost() {
