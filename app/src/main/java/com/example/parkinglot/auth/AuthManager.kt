@@ -9,16 +9,16 @@ object AuthManager {
     private val _currentUser = MutableStateFlow<UserInfo?>(null)
     val currentUser: StateFlow<UserInfo?> = _currentUser.asStateFlow()
 
-    var accessToken: String? = null
-        private set
+//    var accessToken: String? = null
+//        private set
 
     /**
      * TODO (로그인 담당자):
      * - 로그인 성공 시, 서버로부터 받은 액세스 토큰과 사용자 정보를 사용하여
      * 이 onLoginSuccess 함수를 호출해주세요.
      */
-    fun onLoginSuccess(token: String, userInfo: UserInfo) {
-        accessToken = token
+    fun onLoginSuccess(userInfo: UserInfo) {
+//        accessToken = token
         _currentUser.value = userInfo
     }
 
@@ -28,7 +28,7 @@ object AuthManager {
      * 깨끗하게 초기화해주세요.
      */
     fun logout() {
-        accessToken = null
+//        accessToken = null
         _currentUser.value = null
     }
 }

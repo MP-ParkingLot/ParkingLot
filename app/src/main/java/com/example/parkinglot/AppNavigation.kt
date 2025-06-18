@@ -31,7 +31,7 @@ fun AppNavHost() {
     val navController = rememberNavController()
 
     /* 리뷰 관련 의존성 (예: Retrofit) */
-    val reviewRepository = remember { ReviewRepository { AuthManager.accessToken } }
+    val reviewRepository = remember { ReviewRepository() }
     val currentUser      by AuthManager.currentUser.collectAsState()
 
     NavHost(navController, startDestination = "login") {

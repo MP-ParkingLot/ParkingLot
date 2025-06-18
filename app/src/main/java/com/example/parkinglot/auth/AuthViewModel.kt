@@ -8,9 +8,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.parkinglot.auth.AuthClientProvider
-import com.example.parkinglot.auth.AuthRequest
-import com.example.parkinglot.auth.AuthResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

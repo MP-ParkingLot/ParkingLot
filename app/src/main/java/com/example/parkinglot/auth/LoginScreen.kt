@@ -34,12 +34,13 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.R
+import com.example.parkinglot.auth.AuthManager
 import com.example.parkinglot.auth.AuthViewModel
 import com.example.parkinglot.auth.AuthViewModelFactory
+import com.example.parkinglot.auth.UserInfo
 
 @Composable
 fun LoginScreen(onNavigateToMap: ()-> Unit= {}) {
@@ -119,6 +120,8 @@ fun LoginScreen(onNavigateToMap: ()-> Unit= {}) {
                     viewModel.login(context, id, password,
                         onSuccess = {
                             Toast.makeText(context, "로그인 성공!", Toast.LENGTH_SHORT).show()
+                            val userInfo = UserInfo(id)
+                            AuthManager.onLoginSuccess(userInfo)
                             onNavigateToMap()
                         },
                         onError = {
@@ -141,7 +144,7 @@ fun LoginScreen(onNavigateToMap: ()-> Unit= {}) {
             Button(onClick = {
                     viewModel.signup(id, password,
                         onSuccess = {
-                            Toast.makeText(context, "회원가입 성공!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "회원가입 성공! 로그인해주세요.", Toast.LENGTH_SHORT).show()
                         },
                         onError = {
                             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -159,10 +162,4 @@ fun LoginScreen(onNavigateToMap: ()-> Unit= {}) {
             }
         }
     }
-}
-
-@Preview
-@Composable
-private fun LoginScreenPreview() {
-    LoginScreen()
 }
