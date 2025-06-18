@@ -3,6 +3,7 @@ package com.example.parkinglot.review
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.parkinglot.ReviewRepository
 import com.example.parkinglot.auth.UserInfo
 
 class ReviewViewModelFactory(

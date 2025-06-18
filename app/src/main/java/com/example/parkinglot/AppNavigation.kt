@@ -14,10 +14,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.parkinglot.auth.AuthManager
+import com.example.parkinglot.auth.AuthManager.currentUser
 import com.example.parkinglot.auth.SignUpScreen
 import com.example.parkinglot.repository.ParkingLotRepository
 import com.example.parkinglot.review.Review
-import com.example.parkinglot.review.ReviewRepository
 import com.example.parkinglot.review.ReviewScreen
 import com.example.parkinglot.review.ReviewViewModel
 import com.example.parkinglot.review.ReviewViewModelFactory
@@ -32,7 +32,13 @@ fun AppNavHost() {
     val navController = rememberNavController()
 
     /* 리뷰 관련 의존성 (예: Retrofit) */
-    val reviewRepository = remember { ReviewRepository() }
+    val reviewRepository = remember { ReviewRepository(
+        {
+            currentUser.value?.let {
+                it.userId
+            }
+        }
+    ) }
     val currentUser      by AuthManager.currentUser.collectAsState()
 
     NavHost(navController, startDestination = "login") {
