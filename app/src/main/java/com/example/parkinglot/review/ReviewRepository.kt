@@ -1,6 +1,10 @@
-// app/src/main/java/com/example/parkinglot/viewmodel/ReviewRepository.kt
-package com.example.parkinglot.review
+package com.example.parkinglot
 
+import com.example.parkinglot.auth.UserInfo
+import com.example.parkinglot.review.RetrofitClient
+import com.example.parkinglot.review.Review
+import com.example.parkinglot.review.ReviewLikeRequest
+import com.example.parkinglot.review.ReviewUpdateRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +22,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         return !authTokenProvider().isNullOrBlank()
     }
 
-    suspend fun fetchReviews(locationId: String, currentUserId: Long?) {
+    suspend fun fetchReviews(locationId: String, currentUserId: String?) {
         if (!isLoggedIn()) return
         try {
             // apiService 호출 시 token 파라미터 제거
@@ -48,7 +52,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         }
     }
 
-    suspend fun updateReview(reviewId: Long, request: ReviewUpdateRequest, locationId: String, currentUserId: Long?) {
+    suspend fun updateReview(reviewId: Long, request: ReviewUpdateRequest, locationId: String, currentUserId: String?) {
         if (!isLoggedIn()) return
         try {
             // apiService 호출 시 token 파라미터 제거
@@ -63,7 +67,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         }
     }
 
-    suspend fun deleteReview(reviewId: Long, locationId: String, currentUserId: Long?) {
+    suspend fun deleteReview(reviewId: Long, locationId: String, currentUserId: String?) {
         if (!isLoggedIn()) return
         try {
             // apiService 호출 시 token 파라미터 제거
@@ -78,7 +82,7 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
         }
     }
 
-    suspend fun toggleLike(reviewId: Long, isLiked: Boolean, locationId: String, currentUserId: Long?) {
+    suspend fun toggleLike(reviewId: Long, isLiked: Boolean, locationId: String, currentUserId: String?) {
         if (!isLoggedIn()) return
         val request = ReviewLikeRequest(isLike = !isLiked)
         try {

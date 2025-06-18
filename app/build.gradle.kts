@@ -4,9 +4,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-parcelize")
-    alias(libs.plugins.kotlin.compose) // Compose 플러그인
     alias(libs.plugins.secrets.gradle.plugin) // Secrets Gradle Plugin
+    id("kotlin-parcelize")
 }
 
 android {
