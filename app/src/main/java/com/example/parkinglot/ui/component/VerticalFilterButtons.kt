@@ -1,4 +1,5 @@
-// app/src/main/java/com/example/parkinglot/ui/component/VerticalFilterButtons.kt
+//app/src/main/java/com/example/parkinglot/ui/component/VerticalFilterButtons.kt
+
 package com.example.parkinglot.ui.component
 
 import androidx.compose.foundation.layout.*

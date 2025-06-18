@@ -1,4 +1,5 @@
-// app/src/main/java/com/example/parkinglot/viewmodel/ReviewData.kt
+//app/src/main/java/com/example/parkinglot/review/ReviewData.kt
+
 package com.example.parkinglot.review
 
 import android.os.Parcelable

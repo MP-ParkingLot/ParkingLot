@@ -1,4 +1,5 @@
 // app/src/main/java/com/example/parkinglot/util/Extensions.kt
+
 package com.example.parkinglot.util
 
 import androidx.compose.foundation.clickable

@@ -1,4 +1,5 @@
 //app/src/main/java/com/example/parkinglot/MyApplication.kt
+
 package com.example.parkinglot
 
 import android.app.Application
