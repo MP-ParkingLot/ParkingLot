@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/ui/activity/MainActivity.kt
 
-package com.example.parkinglot.ui.activity
+package com.example.parkinglot.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/ui/screen/main/MainScreen.kt
 
-package com.example.parkinglot.ui.screen.main
+package com.example.parkinglot.ui.screen
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -38,10 +38,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.ui.component.map.KakaoMapScreen
 import com.example.parkinglot.domain.model.parking.CombinedParkingLotInfo
-import com.example.parkinglot.ui.dialog.DistanceRadiusDialog
+import com.example.parkinglot.ui.DistanceRadiusDialog
 import com.example.parkinglot.ui.component.DistrictDropdownMenu
 import com.example.parkinglot.ui.component.VerticalFilterButtons
-import com.example.parkinglot.viewmodel.parking.ParkingViewModel
+import com.example.parkinglot.viewmodel.ParkingViewModel
 
 @Composable
 fun MainScreen(

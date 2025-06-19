@@ -8,7 +8,7 @@ import com.example.parkinglot.domain.model.parking.response.NearByParkinglotResp
 import com.example.parkinglot.domain.model.parking.ParkingLotDetail
 import com.example.parkinglot.domain.model.parking.response.RegionParkinglotResponse
 import com.example.parkinglot.data.network.converter.ArrayWrappingAdapterFactory
-import com.example.parkinglot.ui.adapter.ParkingLotDetailAdapter
+import com.example.parkinglot.ui.ParkingLotDetailAdapter
 import com.google.gson.GsonBuilder
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

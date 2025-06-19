@@ -41,8 +41,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.R
-import com.example.parkinglot.viewmodel.auth.AuthViewModel
-import com.example.parkinglot.viewmodel.auth.AuthViewModelFactory
+import com.example.parkinglot.viewmodel.AuthViewModel
+import com.example.parkinglot.viewmodel.AuthViewModelFactory
 
 @Composable
 fun SignUpScreen(onNavigateBack: ()->Unit = {}) {

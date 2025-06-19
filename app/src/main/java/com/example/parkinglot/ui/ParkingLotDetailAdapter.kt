@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/ui/adapter/ParkingLotDetailAdapter.kt
 
-package com.example.parkinglot.ui.adapter
+package com.example.parkinglot.ui
 
 import com.example.parkinglot.domain.model.parking.ParkingLotDetail
 import com.google.gson.TypeAdapter

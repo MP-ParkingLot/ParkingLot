@@ -3,6 +3,7 @@
 package com.example.parkinglot.data.network.auth
 
 import android.util.Log
+import com.example.parkinglot.data.network.ApiService
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
@@ -45,4 +46,5 @@ object AuthClientProvider {
         .build()
 
     val authService: AuthService = retrofit.create(AuthService::class.java)
+    val apiService: ApiService = retrofit.create(ApiService::class.java)
 }

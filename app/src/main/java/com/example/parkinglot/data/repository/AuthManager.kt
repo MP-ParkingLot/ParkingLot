@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/dto/repository/auth/AuthManager.kt
 
-package com.example.parkinglot.data.repository.auth
+package com.example.parkinglot.data.repository
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

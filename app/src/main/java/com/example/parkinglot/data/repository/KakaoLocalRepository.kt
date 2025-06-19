@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/dto/repository/kakao/KakaoLocalRepository.kt
 
-package com.example.parkinglot.data.repository.kakao
+package com.example.parkinglot.data.repository
 
 import com.example.parkinglot.BuildConfig
 import com.example.parkinglot.domain.model.kakao.KakaoLocalResponse

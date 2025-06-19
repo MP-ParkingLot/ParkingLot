@@ -1,12 +1,12 @@
 //app/src/main/java/com/example/parkinglot/viewmodel/parking/ParkingViewModel.kt
 
-package com.example.parkinglot.viewmodel.parking
+package com.example.parkinglot.viewmodel
 
 import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.parkinglot.data.repository.parking.ParkingLotRepository
+import com.example.parkinglot.data.repository.ParkingLotRepository
 import com.example.parkinglot.domain.model.parking.CombinedParkingLotInfo
 import com.example.parkinglot.domain.model.parking.ParkingLotDetail
 import com.example.parkinglot.domain.model.ui.ParkingUiState

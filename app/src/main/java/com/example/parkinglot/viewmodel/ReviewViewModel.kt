@@ -1,11 +1,11 @@
 //app/src/main/java/com/example/parkinglot/viewmodel/review/ReviewViewModel.kt
 
-package com.example.parkinglot.viewmodel.review
+package com.example.parkinglot.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.parkinglot.data.repository.auth.UserInfo
-import com.example.parkinglot.data.repository.review.ReviewRepository
+import com.example.parkinglot.data.repository.ReviewRepository
+import com.example.parkinglot.data.repository.UserInfo
 import com.example.parkinglot.review.Review
 import com.example.parkinglot.review.ReviewUpdateRequest
 import kotlinx.coroutines.flow.MutableStateFlow

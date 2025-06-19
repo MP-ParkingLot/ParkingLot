@@ -4,8 +4,8 @@ package com.example.parkinglot.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.parkinglot.data.repository.parking.ParkingLotRepository
-import com.example.parkinglot.viewmodel.parking.ParkingViewModel
+import com.example.parkinglot.data.repository.ParkingLotRepository
+import com.example.parkinglot.viewmodel.ParkingViewModel
 
 class ParkingViewModelFactory(private val repository: ParkingLotRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

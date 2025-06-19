@@ -1,9 +1,8 @@
 //app/src/main/java/com/example/parkinglot/dto/repository/review/ReviewRepository.kt
 
-package com.example.parkinglot.data.repository.review
+package com.example.parkinglot.data.repository
 
-import com.example.parkinglot.data.repository.auth.UserInfo
-import com.example.parkinglot.data.network.core.RetrofitClient
+import com.example.parkinglot.data.network.auth.AuthClientProvider
 import com.example.parkinglot.review.Review
 import com.example.parkinglot.review.ReviewLikeRequest
 import com.example.parkinglot.review.ReviewUpdateRequest
@@ -13,19 +12,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
-class ReviewRepository(private val authTokenProvider: () -> String?) {
+class ReviewRepository() {
 
-    private val apiService = RetrofitClient.api
+    private val apiService = AuthClientProvider.apiService
     private val _reviews = MutableStateFlow<List<Review>>(emptyList())
     fun getReviewStream(): Flow<List<Review>> = _reviews.asStateFlow()
 
-    private fun getAuthToken(): String? {
-        val token = authTokenProvider()
-        return if (token.isNullOrBlank()) null else "Bearer $token"
-    }
-
     suspend fun fetchReviews(locationId: String, currentUserId: String?) {
-        val token = getAuthToken() ?: return
         try {
             val response = withContext(Dispatchers.IO) { apiService.getReviews(locationId) }
             if (response.isSuccessful) {
@@ -39,7 +32,6 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
     }
 
     suspend fun addReview(locationId: String, request: ReviewUpdateRequest, author: UserInfo) {
-        val token = getAuthToken() ?: return
         try {
             val response =
                 withContext(Dispatchers.IO) { apiService.addReview(locationId, request) }
@@ -54,7 +46,6 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
     }
 
     suspend fun updateReview(reviewId: Long, request: ReviewUpdateRequest, locationId: String, currentUserId: String?) {
-        val token = getAuthToken() ?: return
         try {
             val response =
                 withContext(Dispatchers.IO) { apiService.updateReview(reviewId, request) }
@@ -69,7 +60,6 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
     }
 
     suspend fun deleteReview(reviewId: Long, locationId: String, currentUserId: String?) {
-        val token = getAuthToken() ?: return
         try {
             val response = withContext(Dispatchers.IO) { apiService.deleteReview(reviewId) }
             if (response.isSuccessful) {
@@ -83,7 +73,6 @@ class ReviewRepository(private val authTokenProvider: () -> String?) {
     }
 
     suspend fun toggleLike(reviewId: Long, isLiked: Boolean, locationId: String, currentUserId: String?) {
-        val token = getAuthToken() ?: return
         val request = ReviewLikeRequest(isLike = !isLiked)
         try {
             val response =

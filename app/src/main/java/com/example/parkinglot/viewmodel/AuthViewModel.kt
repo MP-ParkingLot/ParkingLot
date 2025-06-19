@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/viewmodel/auth/AuthViewModel.kt
 
-package com.example.parkinglot.viewmodel.auth
+package com.example.parkinglot.viewmodel
 
 import android.content.Context
 import android.content.SharedPreferences

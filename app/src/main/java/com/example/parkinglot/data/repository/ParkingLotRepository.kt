@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/dto/repository/parking/ParkingLotRepository.kt
 
-package com.example.parkinglot.data.repository.parking
+package com.example.parkinglot.data.repository
 
 import android.util.Log
 import com.example.parkinglot.BuildConfig

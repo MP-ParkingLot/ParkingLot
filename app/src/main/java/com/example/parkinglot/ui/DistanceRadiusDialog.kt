@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/ui/dialog/DistanceRadiusDialog.kt
 
-package com.example.parkinglot.ui.dialog
+package com.example.parkinglot.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog

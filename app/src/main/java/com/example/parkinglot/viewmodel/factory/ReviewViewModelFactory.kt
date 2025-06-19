@@ -4,9 +4,9 @@ package com.example.parkinglot.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.parkinglot.data.repository.auth.UserInfo
-import com.example.parkinglot.data.repository.review.ReviewRepository
-import com.example.parkinglot.viewmodel.review.ReviewViewModel
+import com.example.parkinglot.data.repository.UserInfo
+import com.example.parkinglot.data.repository.ReviewRepository
+import com.example.parkinglot.viewmodel.ReviewViewModel
 
 class ReviewViewModelFactory(
     private val repository: ReviewRepository,
