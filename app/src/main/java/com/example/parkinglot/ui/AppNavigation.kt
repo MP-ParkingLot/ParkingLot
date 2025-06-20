@@ -27,6 +27,7 @@ import com.example.parkinglot.viewmodel.factory.ParkingViewModelFactory
 import com.example.parkinglot.review.ReviewViewModelFactory
 import com.example.parkinglot.viewmodel.ParkingViewModel
 import com.example.parkinglot.review.ReviewViewModel
+import com.example.parkinglot.ui.IntroScreen
 
 @Composable
 fun AppNavHost() {
@@ -36,7 +37,17 @@ fun AppNavHost() {
     val reviewRepository = remember { ReviewRepository() }
     val currentUser      by AuthManager.currentUser.collectAsState()
 
-    NavHost(navController, startDestination = "login") {
+    NavHost(navController, startDestination = "intro") {
+        /** ───────── 로그인 화면 ───────── */
+        composable("intro") {
+            IntroScreen(
+                onNavigateToLogin = {
+                    navController.navigate("login"){
+                        popUpTo("intro") { inclusive = true }
+                    }
+                }
+            )
+        }
         /** ───────── 로그인 화면 ───────── */
         composable("login") {
             LoginScreen(
