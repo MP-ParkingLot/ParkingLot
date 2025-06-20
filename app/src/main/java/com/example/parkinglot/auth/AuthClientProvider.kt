@@ -1,9 +1,9 @@
 //app/src/main/java/com/example/parkinglot/dto/network/auth/AuthClientProvider
 
-package com.example.parkinglot.data.network.auth
+package com.example.parkinglot.auth
 
 import android.util.Log
-import com.example.parkinglot.data.network.ApiService
+import com.example.parkinglot.review.ApiService
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl

@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/ui/screen/review/ReviewScreen.kt
 
-package com.example.parkinglot.ui.screen
+package com.example.parkinglot.review
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,9 +43,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.parkinglot.review.Review
-import com.example.parkinglot.viewmodel.ReviewViewModel
-import com.example.parkinglot.viewmodel.SortOrder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

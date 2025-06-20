@@ -9,6 +9,12 @@ data class AuthRequest(
     @SerializedName("password") val password: String
 )
 
+data class SignupRequest(
+    @SerializedName("id") val id: String,
+    @SerializedName("nickname") val nickname: String,
+    @SerializedName("password") val password: String
+)
+
 data class AuthResponse(
     @SerializedName("message") val message: String
 )

@@ -1,13 +1,11 @@
 //app/src/main/java/com/example/parkinglot/viewmodel/review/ReviewViewModel.kt
 
-package com.example.parkinglot.viewmodel
+package com.example.parkinglot.review
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.parkinglot.data.repository.ReviewRepository
-import com.example.parkinglot.data.repository.UserInfo
-import com.example.parkinglot.review.Review
-import com.example.parkinglot.review.ReviewUpdateRequest
+import com.example.parkinglot.auth.SignInInfo
+import com.example.parkinglot.auth.UserInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +32,7 @@ enum class SortOrder(val displayName: String) {
 
 class ReviewViewModel(
     private val repository: ReviewRepository,
-    private val currentUser: UserInfo?
+    private val currentUser: SignInInfo?
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReviewUiState())

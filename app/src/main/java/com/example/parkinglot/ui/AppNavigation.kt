@@ -15,18 +15,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.parkinglot.auth.SignUpScreen
-import com.example.parkinglot.data.repository.AuthManager
+import com.example.parkinglot.auth.AuthManager
 import com.example.parkinglot.data.repository.ParkingLotRepository
-import com.example.parkinglot.data.repository.ReviewRepository
+import com.example.parkinglot.review.ReviewRepository
 import com.example.parkinglot.review.Review
 import com.example.parkinglot.review.UpdateDeleteScreen
 import com.example.parkinglot.review.WriteReviewScreen
 import com.example.parkinglot.ui.screen.MainScreen
-import com.example.parkinglot.ui.screen.ReviewScreen
+import com.example.parkinglot.review.ReviewScreen
 import com.example.parkinglot.viewmodel.factory.ParkingViewModelFactory
-import com.example.parkinglot.viewmodel.factory.ReviewViewModelFactory
+import com.example.parkinglot.review.ReviewViewModelFactory
 import com.example.parkinglot.viewmodel.ParkingViewModel
-import com.example.parkinglot.viewmodel.ReviewViewModel
+import com.example.parkinglot.review.ReviewViewModel
 
 @Composable
 fun AppNavHost() {

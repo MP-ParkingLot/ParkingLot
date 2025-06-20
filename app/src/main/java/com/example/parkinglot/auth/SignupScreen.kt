@@ -41,8 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.R
-import com.example.parkinglot.viewmodel.AuthViewModel
-import com.example.parkinglot.viewmodel.AuthViewModelFactory
 
 @Composable
 fun SignUpScreen(onNavigateBack: ()->Unit = {}) {
@@ -189,7 +187,7 @@ fun SignUpScreen(onNavigateBack: ()->Unit = {}) {
 
         Button(
             onClick = {
-                viewModel.signup(id, password,
+                viewModel.signup(id, nickname, password,
                     onSuccess = {
                         isIdAvailable = true
                         Toast.makeText(context, "회원가입 성공! 로그인해주세요.", Toast.LENGTH_SHORT).show()

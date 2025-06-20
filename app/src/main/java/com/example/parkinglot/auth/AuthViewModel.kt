@@ -1,6 +1,6 @@
 //app/src/main/java/com/example/parkinglot/viewmodel/auth/AuthViewModel.kt
 
-package com.example.parkinglot.viewmodel
+package com.example.parkinglot.auth
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -9,9 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.parkinglot.auth.AuthRequest
-import com.example.parkinglot.auth.AuthResponse
-import com.example.parkinglot.data.network.auth.AuthClientProvider
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -60,8 +57,8 @@ class AuthViewModel(val prefs: SharedPreferences) : ViewModel() {
     }
 
 
-    fun signup(id: String, password: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        val request = AuthRequest(id, password)
+    fun signup(id: String, nickname:String, password: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val request = SignupRequest(id, nickname, password)
         api.signup(request).enqueue(object : Callback<AuthResponse> {
             override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
                 when (response.code()) {

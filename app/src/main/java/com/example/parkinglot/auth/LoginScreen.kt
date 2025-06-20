@@ -38,10 +38,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.parkinglot.R
-import com.example.parkinglot.data.repository.AuthManager
-import com.example.parkinglot.data.repository.UserInfo
-import com.example.parkinglot.viewmodel.AuthViewModel
-import com.example.parkinglot.viewmodel.AuthViewModelFactory
+import com.example.parkinglot.auth.AuthManager
+import com.example.parkinglot.auth.AuthViewModel
+import com.example.parkinglot.auth.AuthViewModelFactory
+import com.example.parkinglot.auth.SignInInfo
 
 @Composable
 fun LoginScreen(onNavigateToMap: ()->Unit={}, onNavigateToSignup: ()->Unit={}) {
@@ -121,7 +121,7 @@ fun LoginScreen(onNavigateToMap: ()->Unit={}, onNavigateToSignup: ()->Unit={}) {
                     viewModel.login(context, id, password,
                         onSuccess = {
                             Toast.makeText(context, "로그인 성공!", Toast.LENGTH_SHORT).show()
-                            val userInfo = UserInfo(id)
+                            val userInfo = SignInInfo(id)
                             AuthManager.onLoginSuccess(userInfo)
                             onNavigateToMap()
                         },
