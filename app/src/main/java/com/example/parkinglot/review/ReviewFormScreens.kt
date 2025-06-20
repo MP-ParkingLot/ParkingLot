@@ -41,7 +41,7 @@ fun WriteReviewScreen(viewModel: ReviewViewModel, onNavigateBack: () -> Unit) {
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var rate by remember { mutableIntStateOf(0) }
-    var selectedCategories by remember { mutableStateOf(mapOf("넓은 공간" to false, "화장실" to false, "충전소" to false)) }
+    var selectedCategories by remember { mutableStateOf(mapOf("넓은공간" to false, "화장실" to false, "충전소" to false)) }
 
     Scaffold(
         topBar = {
@@ -51,7 +51,9 @@ fun WriteReviewScreen(viewModel: ReviewViewModel, onNavigateBack: () -> Unit) {
             )
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues).fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(modifier = Modifier
+            .padding(paddingValues)
+            .fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
             ReviewForm(title, content, rate, selectedCategories, { title = it }, { content = it }, { rate = it }, { category, isSelected ->
                 selectedCategories = selectedCategories.toMutableMap().apply { this[category] = isSelected }
             })
@@ -61,7 +63,9 @@ fun WriteReviewScreen(viewModel: ReviewViewModel, onNavigateBack: () -> Unit) {
                     viewModel.addReview(request)
                     onNavigateBack()
                 },
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 enabled = rate > 0 && content.isNotBlank() && title.isNotBlank()
             ) { Text("리뷰 추가하기") }
         }
@@ -86,11 +90,15 @@ fun UpdateDeleteScreen(review: Review, viewModel: ReviewViewModel, onNavigateBac
             )
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues).fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(modifier = Modifier
+            .padding(paddingValues)
+            .fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
             ReviewForm(title, content, rate, selectedCategories, { title = it }, { content = it }, { rate = it }, { category, isSelected ->
                 selectedCategories = selectedCategories.toMutableMap().apply { this[category] = isSelected }
             })
-            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { viewModel.deleteReview(review.id); onNavigateBack() }, modifier = Modifier.weight(1f)) { Text("삭제하기") }
                 Button(onClick = {
                     val request = ReviewUpdateRequest(title, content, rate, selectedCategories)
@@ -108,7 +116,9 @@ private fun ReviewForm(
     title: String, content: String, rate: Int, selectedCategories: Map<String, Boolean>,
     onTitleChange: (String) -> Unit, onContentChange: (String) -> Unit, onRateChange: (Int) -> Unit, onCategoryToggle: (String, Boolean) -> Unit
 ) {
-    Column(modifier = Modifier.padding(16.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier
+        .padding(16.dp)
+        .fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Row {
             (1..5).forEach { index ->
                 IconButton(onClick = { onRateChange(index) }) {
@@ -126,6 +136,8 @@ private fun ReviewForm(
             }
         }
         OutlinedTextField(value = title, onValueChange = onTitleChange, label = { Text("제목") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = content, onValueChange = onContentChange, label = { Text("리뷰 내용") }, modifier = Modifier.fillMaxWidth().height(150.dp))
+        OutlinedTextField(value = content, onValueChange = onContentChange, label = { Text("리뷰 내용") }, modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp))
     }
 }

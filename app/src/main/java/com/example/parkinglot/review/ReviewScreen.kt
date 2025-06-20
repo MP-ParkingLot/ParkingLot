@@ -112,7 +112,7 @@ fun ReviewHeader(
     onSortClick: (SortOrder) -> Unit,
     onTagClick: (String) -> Unit
 ) {
-    val availableTags = listOf("넓은 공간", "화장실", "충전소")
+    val availableTags = listOf("넓은공간", "화장실", "충전소")
     val starColor = Color(0xFFFBC02D)
 
     Column(
