@@ -118,6 +118,18 @@ class ReviewViewModel(
     fun toggleLike(reviewId: Long, isCurrentlyLiked: Boolean) {
         viewModelScope.launch {
             repository.toggleLike(reviewId, isCurrentlyLiked, _uiState.value.locationId, currentUser?.userId)
+            _uiState.update { state ->
+                val updatedReviews = state.reviews.map { review ->
+                    if (review.id == reviewId) {
+                        review.copy(
+                            isLikedByMe = !isCurrentlyLiked,
+                            likes = if (isCurrentlyLiked) review.likes - 1 else review.likes + 1
+                        )
+                    } else review
+                }
+
+                state.copy(reviews = updatedReviews)
+            }
         }
     }
 }
