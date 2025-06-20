@@ -243,7 +243,6 @@ fun MainScreen(
         uiState.error?.let { msg ->
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("오류 발생: $msg", color = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.height(8.dp))
                     Button(onClick = {
                         if (selectedDistrict.isEmpty()) {
